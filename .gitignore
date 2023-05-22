@@ -7,9 +7,6 @@ temp
 # DS_Store
 .DS_Store
 
-# observatory databases
-*.db
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

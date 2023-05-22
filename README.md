@@ -17,15 +17,13 @@ Astra is an open-source observatory control software designed for automating and
 ### Installation
 
 ```
-git clone ...
+git clone https://github.com/ppp-one/astra.git
 cd astra
 conda env create -f environment.yml
 cd code
 ```
 
 ### Usage
-
-Before starting Astra:
 
 1. Have Alpaca compliant equipment or simulators active in your local network. 
 2. Edit the config file `config/<observatory-name>.yml` to specify the observatory parameters and equipment's connection with Alpaca. See `config/Io.yml` as an example.
