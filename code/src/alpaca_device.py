@@ -15,12 +15,11 @@ from alpaca.safetymonitor import *
 from alpaca.switch import *
 from alpaca.telescope import *
 
-logging.basicConfig(format='%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s', datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO, filename='../log/alpaca_device.log')
-logging.Formatter.converter = time.gmtime
-
 
 class AlpacaDevice():
-    def __init__(self, ip, device_type, device_number, device_name, cursor):
+    def __init__(self, ip, device_type, device_number, device_name, cursor, debug=False):
+
+        self.debug = debug
 
         self.cursor = cursor
 
@@ -53,7 +52,7 @@ class AlpacaDevice():
         # logging
         if level == 'info':
             logging.info(message)
-        elif level == 'debug':
+        elif level == 'debug' and self.debug is True:
             logging.debug(message)
         elif level == 'warning':
             logging.warning(message)
@@ -61,11 +60,12 @@ class AlpacaDevice():
             logging.error(message, exc_info=True)
         elif level == 'critical':
             logging.critical(message)
-        else:
-            logging.info(message)
 
         dt_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}',  '{message}')")
+        if level == 'debug' and self.debug is True:
+            self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
+        elif level != 'debug':
+            self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
 
     def get_can_states(self):
         methods = [o for o in dir(self.device) if o.startswith('Can')]
@@ -81,19 +81,26 @@ class AlpacaDevice():
         try:
             # permit 3 attempts
             data = None
+            self.__log('debug', f'Getting method: {self.device_type}, {self.device_name}, {method}')
 
             for i in range(2):
                 try:
                     if data is None:
                         data = getattr(self.device, method)
+                        self.__log('debug', f'Get method success: {self.device_type}, {self.device_name}, {method}')
                 except Exception as e:
+                    time.sleep(0)
                     self.__log('warning', f'Get method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...')
                     time.sleep(1)
                     continue
+                time.sleep(0)
 
             if data is None:
                 data = getattr(self.device, method)
+                self.__log('debug', f'Get method success: {self.device_type}, {self.device_name}, {method}')
 
+            time.sleep(0)
+            
             return {"status" : "success", "data" : data, "message" : ""} # check if valid, need args?
         except Exception as e:
             self.__log('error', f'Get method error with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}')
@@ -120,12 +127,14 @@ class AlpacaDevice():
                 if get["status"] == "success":
                     val = get["data"]
                 else:
+                    time.sleep(0)
                     ## try again, just in case...
                     get = self.get(method)
                     if get["status"] == "success":
                         val = get["data"]
                     else:
                         raise ValueError(get)
+                time.sleep(0)
 
                 dt = datetime.utcnow()
                 dt_str = dt.strftime("%Y-%m-%d %H:%M:%S.%f")

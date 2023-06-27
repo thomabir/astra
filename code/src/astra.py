@@ -15,10 +15,6 @@ from astropy.io import fits
 from astropy.time import Time
 from sqlite3worker import Sqlite3Worker  # https://github.com/dashawn888/sqlite3worker
 
-logging.basicConfig(
-    format='%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S', level=logging.INFO, filename='../log/astra.log')
-logging.Formatter.converter = time.gmtime
 
 def update_times(df, time_factor):
     '''
@@ -74,7 +70,7 @@ class Astra():
         self.db_name, self.cursor = self.create_db(config_filename)
 
         if self.debug is True:
-            self.__log('warning', 'Astra is running in simulation mode')
+            self.__log('warning', 'Astra is running in debug mode, schedule start time moved to present time and truncated by factor of 100')
 
         self.__log('info', 'Astra starting up')
 
@@ -110,7 +106,7 @@ class Astra():
         # logging
         if level == 'info':
             logging.info(message)
-        elif level == 'debug':
+        elif level == 'debug' and self.debug is True:
             logging.debug(message)
         elif level == 'warning':
             logging.warning(message)
@@ -119,11 +115,12 @@ class Astra():
             logging.error(message, exc_info=True)
         elif level == 'critical':
             logging.critical(message)
-        else:
-            logging.info(message)
-
+        
         dt_str = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
+        if level == 'debug' and self.debug is True:
+            self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
+        elif level != 'debug':
+            self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
 
     def create_db(self, config_filename : str):
         '''
@@ -194,7 +191,8 @@ class Astra():
                                                                               device_type, 
                                                                               d['device_number'], 
                                                                               d['device_name'], 
-                                                                              self.cursor)
+                                                                              self.cursor,
+                                                                              self.debug)
                     except:
                         self.__log('error', f"Error loading {device_type} {d['device_name']}")
         
@@ -1173,13 +1171,18 @@ class Astra():
         '''
         Save image to disk
         '''
-
+        self.__log('debug', 'Getting image array')
         r = device.get('ImageArray')
 
         if r['status'] == "success":
+            self.__log('debug', 'Got image array, now loading to numpy array')
 
             img = np.array(r['data'])
+            self.__log('debug', 'Loaded image array to numpy array, now transforming')
+            
             nda = self.img_transform(device, img, maxadu) ## TODO: make more efficient?
+            self.__log('debug', 'Image transformed, now saving to disk')
+
 
             hdr['DATE-OBS'] = (dateobs.strftime('%Y-%m-%dT%H:%M:%S.%f'), 'UTC date/time of exposure start')  
 
@@ -1193,7 +1196,9 @@ class Astra():
             else:
                 filepath = f"../images/{folder}/{device.device_name}_{hdr['IMGTYPE']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"
 
+            self.__log('debug', 'Writing to disk')
             hdu.writeto(filepath)
+            self.__log('debug', 'Image written to disk')
 
             self.last_image = filepath
 

@@ -9,12 +9,18 @@ from PIL import Image
 
 import pandas as pd
 from astra import Astra
+import logging
+import time
 
 import uvicorn
 from fastapi import FastAPI, Request, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.templating import Jinja2Templates
 
+logging.basicConfig(
+    format='%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S', filename='../log/astra.log', level=logging.INFO)
+logging.Formatter.converter = time.gmtime
 
 
 frontend = Jinja2Templates(directory="frontend")
@@ -27,6 +33,7 @@ debug = False
 def load_observatories():
     global observatories # not sure if this is necessary
     global fws
+    global debug
 
     kill_observatories()
 
@@ -233,6 +240,7 @@ async def websocket_log(websocket: WebSocket, observatory: str):
 
 @app.websocket("/ws/weather/{observatory}")
 async def websocket_weather(websocket: WebSocket, observatory: str):
+    # this + frontend need work...
     await websocket.accept()
     db = sqlite3.connect('../log/' + observatory + '.db')
     
@@ -252,13 +260,20 @@ async def websocket_weather(websocket: WebSocket, observatory: str):
     initial_df = initial_df.groupby(pd.Grouper(freq='60s')).mean()
     initial_df = initial_df.dropna()
 
-    last_time = initial_df.datetime.iloc[-1]
+    last_time = initial_df.index[-1]
 
-    initial_data = initial_df.to_dict(orient='series')
+    # reset index
+    initial_df = initial_df.reset_index()
+
+    # convert datetime to string
+    initial_df['datetime'] = initial_df['datetime'].astype(str)
+
+    initial_data = initial_df.to_dict(orient='records')
     
     socket = True
 
     try:
+        print(initial_data)
         await websocket.send_json(initial_data)
         await asyncio.sleep(1)
     except:
@@ -285,11 +300,18 @@ async def websocket_weather(websocket: WebSocket, observatory: str):
         df = df.groupby(pd.Grouper(freq='60s')).mean()
         df = df.dropna()
 
-        data = df.to_dict(orient='series')
+        # reset index
+        df = df.reset_index()
+
+        # convert datetime to string
+        df['datetime'] = df['datetime'].astype(str)
+
+        data = df.to_dict(orient='records')
 
         try:
             if len(data) > 0:
-                last_time = df.datetime.iloc[-1]
+                last_time = df.index[-1]
+                print(data)
                 await websocket.send_json(data)
             else:
                 await websocket.send_json({})
@@ -299,7 +321,6 @@ async def websocket_weather(websocket: WebSocket, observatory: str):
             print("weather socket closed")
             socket = False
         
-
 @app.websocket("/ws/{observatory}")
 async def websocket_endpoint(websocket: WebSocket, observatory: str):
     global last_image, last_image_jpg
@@ -578,14 +599,15 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
 if __name__ == "__main__":
     
     import argparse
+
     parser = argparse.ArgumentParser(description='Run Astra')
     parser.add_argument('--debug', action='store_true', help='run in debug mode')
     args = parser.parse_args()
 
     if args.debug:
         debug = True
-    else:
-        debug = False
+        logging.getLogger().setLevel(logging.DEBUG)
 
     # start the server
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    log_level = "info" if not debug else "debug"
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level=log_level)
