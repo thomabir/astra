@@ -1,0 +1,39 @@
+Telescope:
+  - device_name: Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0
+    alt_limit: 20
+Focuser:
+  - device_name: focuser_Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0
+    focus_pos: 10000
+Dome:
+  - device_name: dome_Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0
+    focus_pos: 10000
+Camera:
+  - device_name: camera_Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0
+    target_adu: [45000, 3000]
+    paired_devices: 
+      Telescope: Callisto
+      Focuser: focuser_Callisto
+      FilterWheel: fw_Callisto
+      ObservingConditions: weather_Callisto
+      SafetyMonitor: safety_Callisto
+      Dome: dome_Callisto
+FilterWheel:
+  - device_name: fw_Callisto
+    ip: 10.211.55.3:11111 
+    device_number: 0
+ObservingConditions:
+  - device_name: weather_Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0
+SafetyMonitor:
+  - device_name: safety_Callisto
+    ip: 10.211.55.3:11111
+    device_number: 0

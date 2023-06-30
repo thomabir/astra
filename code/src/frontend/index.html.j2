@@ -26,8 +26,30 @@
         m-4 p-4 space-y-4 bg-white/10 shadow-slate-950/50 shadow-xl rounded-xl">
             
             {# title #}
-            <div id="title-{{ observatory }}" class="flex-initial justify-left text-3xl font-bold">
-                {{ observatory }}
+            <div class="flex flex-row flex-initial text-3xl font-bold align-bottom">
+                <div class="flex-initial justify-left">
+                    <div id="title-{{ observatory }}">
+                        {{ observatory }}
+                    </div>
+                </div>
+
+                <div class="grow">
+                    <div class="flex flex-row-reverse h-full items-center">
+                        <div title="Abort!">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-red-700 active:text-red-600 cursor-pointer" onclick="interrupt('{{observatory}}')" title="This is your tooltip">
+                                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm6-2.438c0-.724.588-1.312 1.313-1.312h4.874c.725 0 1.313.588 1.313 1.313v4.874c0 .725-.588 1.313-1.313 1.313H9.564a1.312 1.312 0 01-1.313-1.313V9.564z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+
+                        <div title="Start watchdog">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 mr-2 text-green-700 active:text-green-600 cursor-pointer" onclick="startWatchdog('{{observatory}}')">
+                                <path fill-rule="evenodd" d="M9.315 7.584C12.195 3.883 16.695 1.5 21.75 1.5a.75.75 0 01.75.75c0 5.056-2.383 9.555-6.084 12.436A6.75 6.75 0 019.75 22.5a.75.75 0 01-.75-.75v-4.131A15.838 15.838 0 016.382 15H2.25a.75.75 0 01-.75-.75 6.75 6.75 0 017.815-6.666zM15 6.75a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" clip-rule="evenodd" />
+                                <path d="M5.26 17.242a.75.75 0 10-.897-1.203 5.243 5.243 0 00-2.05 5.022.75.75 0 00.625.627 5.243 5.243 0 005.022-2.051.75.75 0 10-1.202-.897 3.744 3.744 0 01-3.008 1.51c0-1.23.592-2.323 1.51-3.008z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
             </div>
                 
             {# nav #}
@@ -462,27 +484,33 @@
         }
 
         function startWatchdog(observatory) {
-            fetch('/api/startwatchdog/' + observatory)
-                .then(response => response.json())
-                .then(data => {
-                        console.log(data);
-                });
+            if (confirm("Are you sure you want to start the watchdog?")) {
+                fetch('/api/startwatchdog/' + observatory)
+                    .then(response => response.json())
+                    .then(data => {
+                            console.log(data);
+                    });
+            }
         }
         
         function stopWatchdog(observatory) {
-            fetch('/api/stopwatchdog/' + observatory)
-                .then(response => response.json())
-                .then(data => {
-                        console.log(data);
-                });
+            if (confirm("Are you sure you want to stop the watchdog?")) {
+                fetch('/api/stopwatchdog/' + observatory)
+                    .then(response => response.json())
+                    .then(data => {
+                            console.log(data);
+                    });
+            }
         }
 
         function interrupt(observatory) {
-            fetch('/api/interrupt/' + observatory)
-                .then(response => response.json())
-                .then(data => {
-                        console.log(data);
-                });
+            if (confirm("Are you sure you want to abort current actions?")) {
+                fetch('/api/interrupt/' + observatory)
+                    .then(response => response.json())
+                    .then(data => {
+                            console.log(data);
+                    });
+            }
         }
 
         function connectWebSocket(url, observatory, type) {

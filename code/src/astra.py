@@ -394,7 +394,7 @@ class Astra():
 
                     if self.schedule.iloc[-1]['end_time'] > datetime.utcnow():
 
-                        self.__log('info', f"Watchdog: {len(rows)} instances of weather unsafe found in last 1 minutes")
+                        self.__log('debug', f"Watchdog: {len(rows)} instances of weather unsafe found in last 1 minutes")
 
                         # start schedule
                         if len(rows) == 0:
@@ -868,7 +868,7 @@ class Astra():
 
         for i, exptime in enumerate(action_value['exptime']):
 
-            if (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) and self.error_free and (self.interrupt is False):
+            if (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) and self.weather_safe and self.error_free and (self.interrupt is False):
 
                 hdr['EXPTIME'] = exptime
 
@@ -887,7 +887,7 @@ class Astra():
                     raise ValueError(r)
             
                 count = 0
-                while (count < action_value['n'][i]) and (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) and self.error_free and (self.interrupt is False):
+                while (count < action_value['n'][i]) and (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) and self.weather_safe and self.error_free and (self.interrupt is False):
                     r = camera.get('ImageReady')
                     time.sleep(0) # yield to other threads
                     if r['status'] == "success":
