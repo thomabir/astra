@@ -8,6 +8,7 @@ import astropy.units as u
 import numpy as np
 import pandas as pd
 import utils
+from guiding import Guider
 import yaml
 import os
 from alpaca_device import AlpacaDevice
@@ -610,7 +611,7 @@ class Astra():
                         t = datetime.utcnow()
                         
                         if row['start_time'] >= t:
-                            print((row['start_time'] - t).total_seconds(), 'seconds until')
+                            # print((row['start_time'] - t).total_seconds(), 'seconds until')
                             # see last row in log
                             # rows = self.cursor.execute("SELECT * FROM log ORDER BY id DESC LIMIT 1")
                             # if rows[0]['message'] != f"Waiting for {row['device_name']} {row['action_type']} to start":
@@ -949,6 +950,15 @@ class Astra():
         hdr['EXPTIME'] = action_value['exptime']
         camera = self.devices[row['device_type']][row['device_name']]
         
+        if 'guiding' in action_value:
+            if action_value['guiding'] is True:
+                telescope = self.devices['Telescope'][paired_devices['Telescope']]
+                glob_str = f"../images/{folder}/{row['device_name']}_{action_value['filter']}_{action_value['object']}_{action_value['exptime']}_*.fits"
+                guider = Guider(camera, telescope, self.cursor, glob_str)
+                th = Thread(target=guider.guider_loop, daemon=True)
+                th.start()
+                self.threads.append({'type': 'guider', 'device_name': row['device_name'], 'thread': th, 'id' : 'guider'})
+
         r = camera.get('MaxADU')
         if r['status'] != "success":
             raise ValueError(r)
@@ -1006,6 +1016,11 @@ class Astra():
                     # TODO: time.sleep(0.01) # change dynamically wrt when image last came in?
             else:
                 raise ValueError(r)
+            
+        # TODO: better way to start/stop guiding
+        if 'guiding' in action_value:
+            if action_value['guiding'] is True:
+                guider.running = False
             
         self.__log('info', f"Object_sequence ended for {row['device_name']} {row['action_type']} {row['action_value']} {row['start_time']} {row['end_time']}")
 
@@ -1227,7 +1242,7 @@ class Astra():
 
             hdu = fits.PrimaryHDU(nda, header=hdr)
 
-            if hdr['IMAGETYP'] == 'Light':
+            if hdr['IMGTYPE'] == 'Light':
                 filepath = f"../images/{folder}/{device.device_name}_{hdr['FILTER']}_{hdr['OBJECT']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"
             else:
                 filepath = f"../images/{folder}/{device.device_name}_{hdr['IMGTYPE']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"

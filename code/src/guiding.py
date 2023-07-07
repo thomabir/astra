@@ -23,6 +23,8 @@ from donuts.image import Image
 
 from scipy.ndimage import median_filter # todo: check this is the right one
 
+from alpaca.telescope import GuideDirections
+
 """
 Confiuguration parameters
 """
@@ -55,7 +57,7 @@ PIX2TIME = {'+x': 61.77,
             '-y': 61.78}
 
 # guide directions
-DIRECTIONS = {'-y': 0, '+y': 1, '+x': 2, '-x': 3}
+DIRECTIONS = {'-y': GuideDirections.guideNorth, '+y': GuideDirections.guideSouth, '+x': GuideDirections.guideEast, '-x': GuideDirections.guideWest}
 
 # max allowed shift to correct
 MAX_ERROR_PIXELS = 20
@@ -90,7 +92,7 @@ class Guider():
 
         # set up the image glob string
         self.glob_str = glob_str # e.g. './images/20230621/io_trappist_z_10_*.fits'
-        self.reference_dir = './images/autoguider_ref/'
+        self.reference_dir = '../images/autoguider_ref'
 
         # set up variables
         self.BUFF_X, self.BUFF_Y = [], []
@@ -264,7 +266,6 @@ class Guider():
         with open(logfile, "a") as outfile:
             outfile.write("{}\n".format(line))
 
-    # todo: add astra code
     def guide(self, x, y, images_to_stabilise, gem=False):
         """
         Generic autoguiding command with built-in PID control loop
@@ -314,7 +315,6 @@ class Guider():
         None
         """
 
-        #TODO: add scope connection
         connected = self.telescope.get('Connected')['data']
         if connected:
             # get telescope declination to scale RA corrections
@@ -375,12 +375,12 @@ class Guider():
                 guide_time_y = pidy * PIX2TIME['+y']
                 if RA_AXIS == 'y':
                     guide_time_y = guide_time_y/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+y'], Duration=guide_time_y)
+                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+y'], Duration=int(guide_time_y))
             if pidy < 0 and pidy >= -CURRENT_MAX_SHIFT:
                 guide_time_y = abs(pidy * PIX2TIME['-y'])
                 if RA_AXIS == 'y':
                     guide_time_y = guide_time_y/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-y'], Duration=guide_time_y)
+                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-y'], Duration=int(guide_time_y))
             
             # TODO: add timeout
             while self.telescope.get('IsPulseGuiding')['data']:
@@ -390,13 +390,13 @@ class Guider():
                 guide_time_x = pidx * PIX2TIME['+x']
                 if RA_AXIS == 'x':
                     guide_time_x = guide_time_x/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+x'], Duration=guide_time_x)
+                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+x'], Duration=int(guide_time_x))
 
             if pidx < 0 and pidx >= -CURRENT_MAX_SHIFT:
                 guide_time_x = abs(pidx * PIX2TIME['-x'])
                 if RA_AXIS == 'x':
                     guide_time_x = guide_time_x/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-x'], Duration=guide_time_x)
+                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-x'], Duration=int(guide_time_x))
 
             # TODO: add timeout
             while self.telescope.get('IsPulseGuiding')['data']:
@@ -552,13 +552,13 @@ class Guider():
             VALUES
             ('%s', '%s', '%s', '%s', '%s')
             """
-        qry_args = (field, telescope, ref_image, filt, tnow)
+        qry_args = (field, telescope, ref_image.split('/')[-1], filt, tnow)
         self.cursor.execute(qry%qry_args)
 
         # copy the file to the autoguider_ref location
-        copyfile(ref_image, "{}/{}".format(self.reference_dir, ref_image))
+        print(ref_image, "{}/{}".format(self.reference_dir, ref_image.split('/')[-1]))
+        copyfile(ref_image, "{}/{}".format(self.reference_dir, ref_image.split('/')[-1]))
 
-    # todo: save images with telescope+target_name + filter + exp time
     def waitForImage(self, n_images):
         """
         Wait for new images.
@@ -586,6 +586,7 @@ class Guider():
 
             # check for new images
             t = g.glob(self.glob_str)
+            print(t, self.glob_str)
 
             if len(t) > n_images:
 
@@ -616,11 +617,13 @@ class Guider():
                 
             # if no new images, wait for a bit
             else:
-                time.sleep(0.1)
+                time.sleep(1)
 
     def guider_loop(self):
 
         self.running = True
+
+        print('Starting guider loop...')
 
         # dictionaries to hold reference images for different fields/filters
         ref_track = defaultdict(dict)
@@ -663,7 +666,7 @@ class Guider():
                     # set the previous reference image
                     if not ref_file:
                         self.setReferenceImage(current_field, current_filter, last_file, self.camera.device_name)
-                        ref_file = "{}/{}".format(self.reference_dir, last_file)
+                        ref_file = "{}/{}".format(self.reference_dir, last_file.split('/')[-1])
             except IOError:
                 self.logMessageToDb("Problem opening {}...".format(last_file))
                 self.logMessageToDb("Breaking back to check for new day...")
@@ -763,7 +766,7 @@ class Guider():
                 else:
                     applied, post_pid_x, post_pid_y, \
                         std_buff_x, std_buff_y = self.guide(pre_pid_x, pre_pid_y,
-                                                    images_to_stabilise, self.PIDx, self.PIDy)
+                                                    images_to_stabilise)
                     # !applied means no telescope, break to tomorrow
                     if not applied:
                         self.logMessageToDb('SHIFT NOT APPLIED, TELESCOPE *NOT* CONNECTED, EXITING')
