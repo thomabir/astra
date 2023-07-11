@@ -406,6 +406,8 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
 
                 table0.append({"item": device_type, "name": device_name, "status": status, "valid": valid, "last_update": f'{last_update:.0f} s ago', "polled": polled})
 
+                table0.append({"item": "guider", "name": f"{device_name}'s guider", "status": obs.guider[device_name].running, "valid": valid, "last_update": '0 s ago'})
+
         if 'Dome' in obs.devices:
             # we want to know if dome open or closed
             device_type = 'Dome'

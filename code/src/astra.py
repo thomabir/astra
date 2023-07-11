@@ -96,6 +96,13 @@ class Astra():
         self.devices = self.load_devices()
         self.last_image = None
 
+        # for each telescope, create a donuts guider
+        self.guider = {}
+        if 'Telescope' in self.observatory:
+            for device_name in self.devices['Telescope']:
+                telescope = self.devices['Telescope'][device_name]
+                self.guider[device_name] = Guider(telescope, self.cursor)
+
         self.threads = []
 
         self.__log('info', 'Astra initialized')
@@ -506,6 +513,8 @@ class Astra():
             for d in self.devices['Telescope']:
                 device = self.devices['Telescope'][d]
                 device.set('Tracking', False)
+
+                self.guider[d].running = False
 
         if 'Dome' in self.observatory:
             # stop dome slewing
@@ -952,11 +961,12 @@ class Astra():
         
         if 'guiding' in action_value:
             if action_value['guiding'] is True:
-                telescope = self.devices['Telescope'][paired_devices['Telescope']]
+
                 glob_str = f"../images/{folder}/{row['device_name']}_{action_value['filter']}_{action_value['object']}_{action_value['exptime']}_*.fits"
-                guider = Guider(camera, telescope, self.cursor, glob_str)
-                th = Thread(target=guider.guider_loop, daemon=True)
+
+                th = Thread(target=self.guider[paired_devices['Telescope']].guider_loop, args=(camera.device_name, glob_str,), daemon=True)
                 th.start()
+
                 self.threads.append({'type': 'guider', 'device_name': row['device_name'], 'thread': th, 'id' : 'guider'})
 
         r = camera.get('MaxADU')
@@ -1017,10 +1027,10 @@ class Astra():
             else:
                 raise ValueError(r)
             
-        # TODO: better way to start/stop guiding
+        # TODO: better way to start/stop guiding?
         if 'guiding' in action_value:
             if action_value['guiding'] is True:
-                guider.running = False
+                self.guider[paired_devices['Telescope']].running = False
             
         self.__log('info', f"Object_sequence ended for {row['device_name']} {row['action_type']} {row['action_value']} {row['start_time']} {row['end_time']}")
 
