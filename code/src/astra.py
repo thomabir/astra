@@ -101,7 +101,10 @@ class Astra():
         if 'Telescope' in self.observatory:
             for device_name in self.devices['Telescope']:
                 telescope = self.devices['Telescope'][device_name]
-                self.guider[device_name] = Guider(telescope, self.cursor)
+                telescope_index = [i for i, d in enumerate(self.observatory['Telescope']) if d['device_name'] == device_name][0]
+                if 'guider' in self.observatory['Telescope'][telescope_index]:
+                    guider_params = self.observatory['Telescope'][telescope_index]['guider']
+                    self.guider[device_name] = Guider(telescope, self.cursor, guider_params)
 
         self.threads = []
 
@@ -207,8 +210,8 @@ class Astra():
                                                                               d['device_name'], 
                                                                               self.cursor,
                                                                               self.debug)
-                    except:
-                        self.__log('error', f"Error loading {device_type} {d['device_name']}")
+                    except Exception as e:
+                        self.__log('error', f"Error loading {device_type} {d['device_name']}: {str(e)}")
         
         self.__log('info', 'Devices loaded')
 
@@ -303,6 +306,7 @@ class Astra():
 
         self.watchdog_running = True
 
+        # initial safety monitor check
         if 'SafetyMonitor' in self.observatory:
 
             self.__log('info', 'Safety monitor found')
@@ -340,12 +344,52 @@ class Astra():
         
         while self.watchdog_running and self.error_free:
 
+            # check if schedule file updated
             schedule_mtime = os.path.getmtime(f'../schedule/{self.observatory_name}.csv')
 
             if schedule_mtime > self.schedule_mtime:
                 self.__log('warning', 'Schedule updated')
                 self.schedule = self.read_schedule()
+
+
+            # check telescope altitude
+            if 'Telescope' in self.observatory:
+                for device_name in self.devices['Telescope']:
+                    telescope = self.devices['Telescope'][device_name]
+                    telescope_index = [i for i, d in enumerate(self.observatory['Telescope']) if d['device_name'] == device_name][0]
+
+                    if 'alt_limit' in self.observatory['Telescope'][telescope_index]:
+                        alt_limit = self.observatory['Telescope'][telescope_index]['alt_limit']
+
+                        t_poll = telescope.poll_latest()
+
+                        if t_poll['status'] != 'success':
+                            self.__log('error', f"Error polling telescope {device_name}")
+                            break
+                            
+                        if t_poll['data']['Altitude']['value'] <= alt_limit:
+                            self.__log('warning', f"Telescope {device_name} altitude {t_poll['data']['Altitude']['value']} < {alt_limit}")
+
+                            try:
+                                # stop telescope slewing
+                                telescope.get('AbortSlew')['data']()
+                            except Exception as e:
+                                self.__log('error', f"Error stopping telescope {device_name} slewing: {str(e)}")
+
+                            try:
+                                # stop tracking
+                                telescope.set('Tracking', False)
+                            except Exception as e:
+                                self.__log('error', f"Error stopping telescope {device_name} tracking: {str(e)}")
+
+                            try:
+                                # stop guiding
+                                self.guider[device_name].running = False
+                            except Exception as e:
+                                self.__log('error', f"Error stopping telescope {device_name} guiding: {str(e)}")
+
             
+            # check safety monitor
             if 'SafetyMonitor' in self.observatory:
                 sm_poll = safety_monitor.poll_latest()
 
@@ -488,12 +532,12 @@ class Astra():
 
     def toggle_interrupt(self):
         '''
-        Handle user interrupt
+        Handle interrupt
         '''
 
         self.interrupt = True
 
-        self.__log('warning', 'User interrupt')
+        self.__log('warning', 'Observatory interrupted')
 
         # stop watchdog
         self.watchdog_running = False
@@ -984,7 +1028,6 @@ class Astra():
 
         # TODO:
         # plate solve loop till centered?
-        # guiding
 
         while (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) and self.weather_safe and self.error_free and (self.interrupt is False):            
             

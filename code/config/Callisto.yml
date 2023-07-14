@@ -3,6 +3,24 @@ Telescope:
     ip: 10.211.55.3:11111
     device_number: 0
     alt_limit: 20
+    guider:
+      PIX2TIME: 
+        '+x': 61.77
+        '-x': 61.78
+        '+y': 61.87
+        '-y': 61.78
+      RA_AXIS: 'x'
+      DIRECTIONS:
+        '+x': East
+        '-x': West
+        '+y': South
+        '-y': North
+      PID_COEFFS:
+        'x': {'p': 0.70, 'i': 0.02, 'd': 0.0}
+        'y': {'p': 0.50, 'i': 0.02, 'd': 0.0}
+        'set_x': 0.0
+        'set_y': 0.0
+      WAIT_TIME: 10
 Focuser:
   - device_name: focuser_Callisto
     ip: 10.211.55.3:11111

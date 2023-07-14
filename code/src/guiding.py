@@ -10,13 +10,10 @@ import glob as g
 
 from datetime import datetime
 
-from collections import defaultdict
-
 import time
 
 from shutil import copyfile
 
-from PID import PID
 from donuts import Donuts
 from donuts.image import Image
 
@@ -39,12 +36,6 @@ FIELD_KEYWORD = 'OBJECT'
 # header keyword for the current exposure time
 EXPTIME_KEYWORD = 'EXPTIME'
 
-# RA axis alignment along x or y?
-RA_AXIS = 'x'
-
-# guider log file name
-LOGFILE = "guider.log"
-
 # rejection buffer length
 GUIDE_BUFFER_LENGTH = 20
 
@@ -54,26 +45,11 @@ IMAGES_TO_STABILISE = 10
 # outlier rejection sigma
 SIGMA_BUFFER = 10
 
-# pulseGuide conversions
-PIX2TIME = {'+x': 61.77,
-            '-x': 61.78,
-            '+y': 61.87,
-            '-y': 61.78}
-
-# guide directions
-DIRECTIONS = {'-y': GuideDirections.guideNorth, '+y': GuideDirections.guideSouth, '+x': GuideDirections.guideEast, '-x': GuideDirections.guideWest}
-
 # max allowed shift to correct
 MAX_ERROR_PIXELS = 20
 
 # max alloed shift to correct during stabilisation
 MAX_ERROR_STABIL_PIXELS = 40
-
-# PID loop coefficients
-PID_COEFFS = {'x': {'p': 0.70, 'i': 0.02, 'd': 0.0},
-              'y': {'p': 0.50, 'i': 0.02, 'd': 0.0},
-              'set_x': 0.0,
-              'set_y': 0.0}
 
 
 class CustomImageClass(Image):
@@ -84,7 +60,9 @@ class CustomImageClass(Image):
         self.raw_image = band_clean
 
 class Guider():
-    def __init__(self, telescope, cursor):
+    def __init__(self, telescope, cursor, params):
+
+        # TODO: camera angle?
 
         # pass in objects from astra
         self.telescope = telescope
@@ -96,12 +74,39 @@ class Guider():
         # set up the image glob string
         self.reference_dir = '../images/autoguider_ref'
 
+        # pulseGuide conversions
+        self.PIX2TIME = params['PIX2TIME']
+
+        # guide directions
+        self.DIRECTIONS = {}
+        for direction in params['DIRECTIONS']:
+            match params['DIRECTIONS'][direction]:
+                case 'North':
+                    self.DIRECTIONS[direction] = GuideDirections.guideNorth
+                case 'South':
+                    self.DIRECTIONS[direction] = GuideDirections.guideSouth
+                case 'East':
+                    self.DIRECTIONS[direction] = GuideDirections.guideEast
+                case 'West':
+                    self.DIRECTIONS[direction] = GuideDirections.guideWest
+                case _:
+                    self.__log('error', f'Invalid guide direction {self.DIRECTIONS[direction]}')
+
+        # RA axis alignment along x or y? TODO: can be inferred from telescope direction
+        self.RA_AXIS = params['RA_AXIS']
+
+        # PID loop coefficients
+        self.PID_COEFFS = params['PID_COEFFS']
+
+        # wait time before checking for new images
+        self.WAIT_TIME = params['WAIT_TIME']
+
         # set up variables
         # initialise the PID controllers for X and Y
-        self.PIDx = PID(PID_COEFFS['x']['p'], PID_COEFFS['x']['i'], PID_COEFFS['x']['d'])
-        self.PIDy = PID(PID_COEFFS['y']['p'], PID_COEFFS['y']['i'], PID_COEFFS['y']['d'])
-        self.PIDx.setPoint(PID_COEFFS['set_x'])
-        self.PIDy.setPoint(PID_COEFFS['set_y'])
+        self.PIDx = PID(self.PID_COEFFS['x']['p'], self.PID_COEFFS['x']['i'], self.PID_COEFFS['x']['d'])
+        self.PIDy = PID(self.PID_COEFFS['y']['p'], self.PID_COEFFS['y']['i'], self.PID_COEFFS['y']['d'])
+        self.PIDx.setPoint(self.PID_COEFFS['set_x'])
+        self.PIDy.setPoint(self.PID_COEFFS['set_y'])
 
         # ag correction buffers - used for outlier rejection
         self.BUFF_X, self.BUFF_Y = [], []
@@ -410,31 +415,31 @@ class Guider():
             # using >= allows for the stabilising runs to get through
             # abs() on -ve duration otherwise throws back an error
             if pidy > 0 and pidy <= CURRENT_MAX_SHIFT:
-                guide_time_y = pidy * PIX2TIME['+y']
-                if RA_AXIS == 'y':
+                guide_time_y = pidy * self.PIX2TIME['+y']
+                if self.RA_AXIS == 'y':
                     guide_time_y = guide_time_y/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+y'], Duration=int(guide_time_y))
+                self.telescope.get('PulseGuide')['data'](Direction=self.DIRECTIONS['+y'], Duration=int(guide_time_y))
             if pidy < 0 and pidy >= -CURRENT_MAX_SHIFT:
-                guide_time_y = abs(pidy * PIX2TIME['-y'])
-                if RA_AXIS == 'y':
+                guide_time_y = abs(pidy * self.PIX2TIME['-y'])
+                if self.RA_AXIS == 'y':
                     guide_time_y = guide_time_y/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-y'], Duration=int(guide_time_y))
+                self.telescope.get('PulseGuide')['data'](Direction=self.DIRECTIONS['-y'], Duration=int(guide_time_y))
             
             # TODO: add timeout
             while self.telescope.get('IsPulseGuiding')['data']:
                 time.sleep(0.01)
                 
             if pidx > 0 and pidx <= CURRENT_MAX_SHIFT:
-                guide_time_x = pidx * PIX2TIME['+x']
-                if RA_AXIS == 'x':
+                guide_time_x = pidx * self.PIX2TIME['+x']
+                if self.RA_AXIS == 'x':
                     guide_time_x = guide_time_x/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['+x'], Duration=int(guide_time_x))
+                self.telescope.get('PulseGuide')['data'](Direction=self.DIRECTIONS['+x'], Duration=int(guide_time_x))
 
             if pidx < 0 and pidx >= -CURRENT_MAX_SHIFT:
-                guide_time_x = abs(pidx * PIX2TIME['-x'])
-                if RA_AXIS == 'x':
+                guide_time_x = abs(pidx * self.PIX2TIME['-x'])
+                if self.RA_AXIS == 'x':
                     guide_time_x = guide_time_x/cos_dec
-                self.telescope.get('PulseGuide')['data'](Direction=DIRECTIONS['-x'], Duration=int(guide_time_x))
+                self.telescope.get('PulseGuide')['data'](Direction=self.DIRECTIONS['-x'], Duration=int(guide_time_x))
 
             # TODO: add timeout
             while self.telescope.get('IsPulseGuiding')['data']:
@@ -589,7 +594,7 @@ class Guider():
                     
                 # if no new images, wait for a bit
                 else:
-                    time.sleep(1)
+                    time.sleep(self.WAIT_TIME)
 
         # return None values if self.running is False
         return None, None, None, None
@@ -605,6 +610,10 @@ class Guider():
 
                 # get a list of the images in the directory
                 templist = g.glob(glob_str)
+
+
+                # take directory of glob_str and add logfile name
+                LOGFILE = os.path.join(os.path.dirname(glob_str), 'guider.log')
 
                 # TODO: change location of logfile and detect if it already exists
                 self.logShiftsToFile(LOGFILE, [], header=True)
@@ -661,16 +670,16 @@ class Guider():
                         # if we are done stabilising, reset the PID loop
                         if images_to_stabilise == 0:
                             self.logMessageToDb(camera_name, 'Stabilisation complete, reseting PID loop...')
-                            self.PIDx = PID(PID_COEFFS['x']['p'], PID_COEFFS['x']['i'], PID_COEFFS['x']['d'])
-                            self.PIDy = PID(PID_COEFFS['y']['p'], PID_COEFFS['y']['i'], PID_COEFFS['y']['d'])
-                            self.PIDx.setPoint(PID_COEFFS['set_x'])
-                            self.PIDy.setPoint(PID_COEFFS['set_y'])
+                            self.PIDx = PID(self.PID_COEFFS['x']['p'], self.PID_COEFFS['x']['i'], self.PID_COEFFS['x']['d'])
+                            self.PIDy = PID(self.PID_COEFFS['y']['p'], self.PID_COEFFS['y']['i'], self.PID_COEFFS['y']['d'])
+                            self.PIDx.setPoint(self.PID_COEFFS['set_x'])
+                            self.PIDy.setPoint(self.PID_COEFFS['set_y'])
                         elif images_to_stabilise > 0:
                             self.logMessageToDb(camera_name, 'Stabilising using P=1.0, I=0.0, D=0.0')
                             self.PIDx = PID(1.0, 0.0, 0.0)
                             self.PIDy = PID(1.0, 0.0, 0.0)
-                            self.PIDx.setPoint(PID_COEFFS['set_x'])
-                            self.PIDy.setPoint(PID_COEFFS['set_y'])
+                            self.PIDx.setPoint(self.PID_COEFFS['set_x'])
+                            self.PIDy.setPoint(self.PID_COEFFS['set_y'])
 
                         # test load the comparison image to get the shift
                         try:
@@ -765,3 +774,103 @@ class Guider():
             self.__log('error', f"Error in guide loop: {str(e)}")
 
         self.__log('info', f"Stopping guider loop for: {glob_str} images")
+
+
+
+"""
+PID loop controller
+"""
+
+# pylint: disable=invalid-name
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+
+class PID:
+    """
+    Discrete PID control
+
+    http://code.activestate.com/recipes/577231-discrete-pid-controller/
+    """
+    def __init__(self, P=0.5, I=0.25, D=0.0, Derivator=0,
+                 Integrator=0, Integrator_max=500, Integrator_min=-500):
+        self.Kp = P
+        self.Ki = I
+        self.Kd = D
+        self.Derivator = Derivator
+        self.Integrator = Integrator
+        self.Integrator_max = Integrator_max
+        self.Integrator_min = Integrator_min
+        self.set_point = 0.0
+        self.error = 0.0
+        self.P_value = 0.0 # included as pylint complained - jmcc
+        self.D_value = 0.0 # included as pylint complained - jmcc
+        self.I_value = 0.0 # included as pylint complained - jmcc
+
+    def update(self, current_value):
+        """
+        Calculate PID output value for given reference input and feedback
+        """
+        self.error = self.set_point - current_value
+        self.P_value = self.Kp * self.error
+        self.D_value = self.Kd * (self.error - self.Derivator)
+        self.Derivator = self.error
+        self.Integrator = self.Integrator + self.error
+        if self.Integrator > self.Integrator_max:
+            self.Integrator = self.Integrator_max
+        elif self.Integrator < self.Integrator_min:
+            self.Integrator = self.Integrator_min
+        self.I_value = self.Integrator * self.Ki
+        pid = self.P_value + self.I_value + self.D_value
+        return pid
+    def setPoint(self, set_point):
+        """
+        Initilize the setpoint of PID
+        """
+        self.set_point = set_point
+        self.Integrator = 0
+        self.Derivator = 0
+    def setIntegrator(self, Integrator):
+        """
+        Set Integrator
+        """
+        self.Integrator = Integrator
+    def setDerivator(self, Derivator):
+        """
+        Set Derivator
+        """
+        self.Derivator = Derivator
+    def setKp(self, P):
+        """
+        Set Kp
+        """
+        self.Kp = P
+    def setKi(self, I):
+        """
+        Set Ki
+        """
+        self.Ki = I
+    def setKd(self, D):
+        """
+        Set Kd
+        """
+        self.Kd = D
+    def getPoint(self):
+        """
+        Get point
+        """
+        return self.set_point
+    def getError(self):
+        """
+        Get Error
+        """
+        return self.error
+    def getIntegrator(self):
+        """
+        Get Integrator
+        """
+        return self.Integrator
+    def getDerivator(self):
+        """
+        Get Derivator
+        """
+        return self.Derivator
