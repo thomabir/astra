@@ -1,0 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+x = np.linspace(-10, -1, 100)  # Create a list of evenly-spaced numbers over the range
+plt.plot(x, 10**(0.415*x+5.926))       # Plot the sine of each x point
+plt.show()                   # Display the plot

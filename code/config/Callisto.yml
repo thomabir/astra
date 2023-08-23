@@ -1,5 +1,5 @@
 Telescope:
-  - device_name: Callisto
+  - device_name: telescope_Callisto
     ip: 10.211.55.3:11111
     device_number: 0
     alt_limit: 20
@@ -36,9 +36,10 @@ Camera:
   - device_name: camera_Callisto
     ip: 10.211.55.3:11111
     device_number: 0
+    temperature: -40
     target_adu: [45000, 3000]
     paired_devices: 
-      Telescope: Callisto
+      Telescope: telescope_Callisto
       Focuser: focuser_Callisto
       FilterWheel: fw_Callisto
       ObservingConditions: weather_Callisto
@@ -47,9 +48,10 @@ Camera:
   - device_name: camera_Callisto_2
     ip: 10.211.55.3:11111
     device_number: 1
+    temperature: -40
     target_adu: [45000, 3000]
     paired_devices: 
-      Telescope: Callisto
+      Telescope: telescope_Callisto
       Focuser: focuser_Callisto
       FilterWheel: fw_Callisto
       ObservingConditions: weather_Callisto
