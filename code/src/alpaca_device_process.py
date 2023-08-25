@@ -56,14 +56,20 @@ class AlpacaDevice(Process):
         with self.lock:
             self.front_pipe.send(["get", {"method" : method}])
             msg = self.front_pipe.recv()
-            return msg
+            if isinstance(msg, Exception):
+                raise msg
+            else:
+                return msg
 
     def set(self, method, value):
         ## property setter
         with self.lock:
             self.front_pipe.send(["set", {"method" : method, "value" : value}])
             msg = self.front_pipe.recv()
-            return msg
+            if isinstance(msg, Exception):
+                raise msg
+            else:
+                return msg
 
     def start_poll(self, method, delay):
         with self.lock:
@@ -77,13 +83,19 @@ class AlpacaDevice(Process):
         with self.lock:
             self.front_pipe.send("poll_list")
             msg = self.front_pipe.recv()
-            return msg
+            if isinstance(msg, Exception):
+                raise msg
+            else:
+                return msg
 
     def poll_latest(self):
         with self.lock:
             self.front_pipe.send("poll_latest")
             msg = self.front_pipe.recv()
-            return msg
+            if isinstance(msg, Exception):
+                raise msg
+            else:
+                return msg
 
     def stop(self):
         with self.lock:
@@ -163,11 +175,11 @@ class AlpacaDevice(Process):
             if pipe:
                 self.back_pipe.send({"status" : "success", "data" : data, "message" : ""}) # check if valid, need args?
             else:
-                return {"status" : "success", "data" : data, "message" : ""}
+                return data
         except Exception as e:
             if pipe:
                 self.queue.put(self.metadata, {"type" : "log", "data" : ('error', f'Get method error with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}')})
-                self.back_pipe.send({"status" : "error", "data" : "null", "message" : f"Get method error: {str(e)}"}) # check if valid, need args?
+                self.back_pipe.send(e)
             else:
                 return {"status" : "error", "data" : "null", "message" : f"Get method error: {str(e)}"}
 
@@ -175,10 +187,10 @@ class AlpacaDevice(Process):
         ## property setter
         try:
             data = setattr(self.device, method, value)
-            self.back_pipe.send({"status" : "success", "data" : data, "message" : ""}) # check if valid, need args?
+            self.back_pipe.send(data) # check if valid, need args?
         except Exception as e:
             self.queue.put(self.metadata, {"type" : "log", "data" : ('error', f'Set method error: {self.device_type}, {self.device_name}, {method}, {str(e)}')})
-            self.back_pipe.send({"status" : "error", "data" : "null", "message" : f"Set method error: {str(e)}"}) # check if valid, need args?
+            self.back_pipe.send(e) # check if valid, need args?
 
     def loop__(self, method, delay):
         self._poll_list.append(method)
@@ -235,14 +247,14 @@ class AlpacaDevice(Process):
 
     def poll_list__(self):
         try:
-            self.back_pipe.send({"status" : "success", "data" : self._poll_list, "message" : ""})
+            self.back_pipe.send(self._poll_list)
         except Exception as e:    
             self.queue.put(self.metadata, {"type" : "log", "data" : ('error', f'poll_list error: {self.device_type}, {self.device_name}, {str(e)}')})
-            self.back_pipe.send({"status" : "error", "data" : "null", "message" : f"poll_list error: {str(e)}"})
+            self.back_pipe.send(e)
 
     def poll_latest__(self):
         try:
-            self.back_pipe.send({"status" : "success", "data" : self._poll_latest, "message" : ""})
+            self.back_pipe.send(self._poll_latest)
         except Exception as e:
             self.queue.put(self.metadata, {"type" : "log", "data" : ('error', f'poll_latest error: {self.device_type}, {self.device_name}, {str(e)}')})
-            self.back_pipe.send({"status" : "error", "data" : "null", "message" : f"poll_latest error: {str(e)}"})
+            self.back_pipe.send(e)
