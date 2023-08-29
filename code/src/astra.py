@@ -74,6 +74,7 @@ class Astra():
 
         self.threads = []
         self.queue = Manager().Queue()
+        self.queue_running = True
 
         th = Thread(target=self.queue_get, daemon=True)
         th.start()
@@ -347,7 +348,7 @@ class Astra():
                     sm_poll = safety_monitor.poll_latest()
                     time.sleep(0.5)
             except Exception as e:
-                self.error_source.append({'type': 'SafetyMonitor', 'device_name': sm_name, 'error': str(e)})
+                self.error_source.append({'device_type': 'SafetyMonitor', 'device_name': sm_name, 'error': str(e)})
                 self.__log('error', f"Error polling safety monitor {sm_name}: {str(e)}")
         
         else:
@@ -364,10 +365,10 @@ class Astra():
                     try:
                         r = self.devices[device_type][device_name].is_alive()
                         if r is False:
-                            self.error_source.append({'type': device_type, 'device_name': device_name, 'error': 'Device unresponsive'})
+                            self.error_source.append({'device_type': device_type, 'device_name': device_name, 'error': 'Device unresponsive'})
                             self.__log('error', f"{device_type} {device_name} unresponsive")
                     except Exception as e:
-                        self.error_source.append({'type': device_type, 'device_name': device_name, 'error': str(e)})
+                        self.error_source.append({'device_type': device_type, 'device_name': device_name, 'error': str(e)})
                         self.__log('error', f"{device_type} {device_name} unresponsive")
 
 
@@ -386,7 +387,7 @@ class Astra():
                             self.__log('warning', 'Schedule updated')
                             self.schedule = self.read_schedule()
                     except Exception as e:
-                        self.error_source.append({'type': 'Schedule', 'device_name': 'schedule', 'error': str(e)})
+                        self.error_source.append({'device_type': 'Schedule', 'device_name': 'schedule', 'error': str(e)})
                         self.__log('error', f"Error checking schedule: {str(e)}")
                         continue
 
@@ -421,7 +422,7 @@ class Astra():
                                     try:
                                         self.guider[telescope_name].running = False
                                     except Exception as e:
-                                        self.error_source.append({'type': 'Guider', 'device_name': telescope_name, 'error': str(e)})
+                                        self.error_source.append({'device_type': 'Guider', 'device_name': telescope_name, 'error': str(e)})
                                         self.__log('error', f"Error stopping telescope {telescope_name} guiding: {str(e)}")
                                         continue
                                     
@@ -438,7 +439,7 @@ class Astra():
                             case _ if last_update > 3 and last_update < 30:
                                 self.__log('warning', f"Safety monitor {last_update}s stale")
                             case _ if last_update > 30:
-                                self.error_source.append({'type': 'SafetyMonitor', 'device_name': sm_name, 'error': f"Stale data {last_update}s"})
+                                self.error_source.append({'device_type': 'SafetyMonitor', 'device_name': sm_name, 'error': f"Stale data {last_update}s"})
                                 self.__log('error', f"Safety monitor {last_update}s stale")
                                 continue
                         
@@ -450,7 +451,7 @@ class Astra():
                             # log message saying weather unsafe and close observatory
                             if closed is False:
                                 self.__log('warning', 'Weather unsafe')
-                                self.__log('info', 'Closing observatory')
+                                # self.__log('info', 'Closing observatory')
 
                             # may want to close dome before park telescope?
                             self.close_observatory() # checks if already closed and closes if not
@@ -542,6 +543,7 @@ class Astra():
                             case 'Schedule':
                                 self.close_observatory()
                             case 'Queue':
+                                # restart queue?
                                 pass
                             case 'Headers':
                                 pass
@@ -622,7 +624,7 @@ class Astra():
                 try:
                     self.guider[d].running = False
                 except Exception as e:
-                    self.error_source.append({'type': 'Guider', 'device_name': d, 'error': str(e)})
+                    self.error_source.append({'device_type': 'Guider', 'device_name': d, 'error': str(e)})
                     self.__log('error', f"Error stopping telescope {d} guiding: {str(e)}")
                     continue
 
@@ -683,7 +685,7 @@ class Astra():
                 try:
                     self.guider[d].running = False
                 except Exception as e:
-                    self.error_source.append({'type': 'Guider', 'device_name': d, 'error': str(e)})
+                    self.error_source.append({'device_type': 'Guider', 'device_name': d, 'error': str(e)})
                     self.__log('error', f"Error stopping telescope {d} guiding: {str(e)}")
                     continue
 
@@ -759,7 +761,7 @@ class Astra():
                 return self.schedule
             
         except Exception as e:
-            self.error_source.append({'type': 'Schedule', 'device_name': '', 'error': f'Error reading schedule: {e}'})
+            self.error_source.append({'device_type': 'Schedule', 'device_name': '', 'error': f'Error reading schedule: {e}'})
             self.__log('error', f'Error reading schedule: {e}')
             return None
 
@@ -774,7 +776,7 @@ class Astra():
             time.sleep(1)
         
         if self.weather_safe is None:
-            self.error_source.append({'type': 'SafetyMonitor', 'device_name': '', 'error': 'Weather safety check timed out'})
+            self.error_source.append({'device_type': 'SafetyMonitor', 'device_name': '', 'error': 'Weather safety check timed out'})
             self.__log('error', 'Weather safety check timed out')
             return False
 
@@ -1121,7 +1123,7 @@ class Astra():
                         try:
                             offset_ra, offset_dec, wcs = utils.point_correction(filepath, action_value['ra'], action_value['dec'])
                         except Exception as e:
-                            # self.error_source.append({'type': 'Pointing', 'device_name': paired_devices['Telescope'], 'error': str(e)})
+                            # self.error_source.append({'device_type': 'Pointing', 'device_name': paired_devices['Telescope'], 'error': str(e)})
                             self.__log('warning', f"Error running pointing correction for {action_value['object']} with {row['device_name']}: {str(e)}")
                             pointing_complete = True
 
@@ -1166,7 +1168,7 @@ class Astra():
                 try:
                     self.guider[paired_devices['Telescope']].running = False
                 except Exception as e:
-                    self.error_source.append({'type': 'Guider', 'device_name': paired_devices['Telescope'], 'error': str(e)})
+                    self.error_source.append({'device_type': 'Guider', 'device_name': paired_devices['Telescope'], 'error': str(e)})
                     self.__log('error', f"Error stopping telescope {paired_devices['Telescope']} guiding: {str(e)}")
             
         self.__log('info', f"Object sequence ended {eval(row['action_value'])['object']} with {row['device_name']}, starting {row['start_time']} and ending {row['end_time']}")
@@ -1737,10 +1739,10 @@ class Astra():
                     if time.time() - start_time > timeout:
                         break
                 
-                if all_monitor_status == desired_condition:
+                if math.isclose(all_monitor_status, desired_condition, rel_tol=0, abs_tol=abs_tol) is True:
                     self.__log("info", f"Monitor run action complete: {device_type} {monitor_command} {desired_condition} {run_command} {all_monitor_status}")
                 else:
-                    self.error_source.append({'type': device_type, 'device_name': '', 'error': 'Monitor run action timeout'})
+                    self.error_source.append({'device_type': device_type, 'device_name': '', 'error': 'Monitor run action timeout'})
                     self.__log("error", f"Monitor run action timeout: {device_type} {monitor_command} {desired_condition} {run_command} {all_monitor_status}")
                     raise TimeoutError(f"Monitor run action timeout: {device_type} {monitor_command} {desired_condition} {run_command} {all_monitor_status}")
         else:
@@ -1749,7 +1751,7 @@ class Astra():
     
     def queue_get(self):
 
-        while True:
+        while self.queue_running:
             try:
                 metadata, r = self.queue.get()
                 
@@ -1758,8 +1760,9 @@ class Astra():
                 elif r['type'] == 'log':
                     self.__log(r['data'][0], r['data'][1])
                     if r['data'][0] == 'error':
-                        self.error_source.append(metadata)
+                        self.error_source.append({'device_type': metadata['device_type'], 'device_name': metadata['device_name'], 'error': r['data'][1]})
 
             except Exception as e:
-                self.error_source.append({'type': 'Queue', 'device_name': 'queue_get', 'error': str(e)})
+                self.error_source.append({'device_type': 'Queue', 'device_name': 'queue_get', 'error': str(e)})
                 self.__log("error", f"Queue get error: {str(e)}")
+                self.queue_running = False
