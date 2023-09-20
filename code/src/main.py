@@ -150,7 +150,7 @@ async def stop(observatory: str):
 async def interrupt(observatory: str):
     obs = observatories[observatory]
 
-    obs.toggle_interrupt()
+    obs.toggle_interrupt_thread()
 
     return {"status": "success", "data": "null", "message": ""}
 

@@ -734,6 +734,22 @@ class Astra():
                 self.monitor_action('Dome', 'ShutterStatus', 1, 'CloseShutter',
                                         log_message = "Closing Dome shutter(s)")
 
+    def toggle_interrupt_thread(self) -> None:
+        '''
+        Starts a new thread to handle user interrupt.
+
+        This function starts a new thread to handle user interrupt by toggling the interrupt flag and stopping various observatory actions.
+        '''
+
+        if self.interrupt is True:
+            self.__log('warning', 'Observatory already interrupted')
+            return
+
+        th = Thread(target=self.toggle_interrupt, daemon=True)
+        th.start()
+
+        self.threads.append({'type': 'toggle_interrupt', 'device_name': 'all_devices', 'thread': th, 'id' : 'toggle_interrupt'})
+
     def toggle_interrupt(self) -> None:
         '''
         Handle user interrupt by toggling the interrupt flag and stopping various observatory actions.
@@ -1229,7 +1245,7 @@ class Astra():
                 else:
                     hdr['IMGTYPE'] = 'Dark'
                 
-                self.__log('info', f"Exposing {count}/{action_value['n'][i]} {row['device_name']} {hdr['IMGTYPE']} for exposure time {hdr['EXPTIME']} s")
+                self.__log('info', f"Exposing {count + 1}/{action_value['n'][i]} {row['device_name']} {hdr['IMGTYPE']} for exposure time {hdr['EXPTIME']} s")
                 camera.get('StartExposure')(Duration = exptime, Light = False)
             
                 while (count < action_value['n'][i]) and (row['start_time'] <= datetime.utcnow()) \
@@ -1257,7 +1273,7 @@ class Astra():
 
                         if count < action_value['n'][i]:
                             # start next exposure
-                            self.__log('debug', f"Exposing {row['device_name']} again")
+                            self.__log('info', f"Exposing {count + 1}/{action_value['n'][i]} {row['device_name']} {hdr['IMGTYPE']} for exposure time {hdr['EXPTIME']} s")
                             camera.get('StartExposure')(Duration = exptime, Light = False)
 
         self.__log('info', f"Calibration sequence ended for {row['device_name']}, starting {row['start_time']} and ending {row['end_time']}")
@@ -1972,7 +1988,7 @@ class Astra():
 
                     # update files
                     for i, row in df_images_filt.iterrows():
-                        with fits.open(row[0], mode='update') as filehandle:
+                        with fits.open(row['filepath'], mode='update') as filehandle:
                             hdr = filehandle[0].header
                             for header in df_inp.columns:
                                 hdr[header] = (df_inp.iloc[i][header], df_poll_unique[df_poll_unique['header'] == header]['comment'].values[0])
