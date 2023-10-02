@@ -17,6 +17,7 @@ from alpaca.telescope import *
 from alpaca.exceptions import *
 
 import os
+import signal
 
 # https://medium.com/@sampsa.riikonen/doing-python-multiprocessing-the-right-way-a54c1880e300
 # https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio
@@ -105,6 +106,9 @@ class AlpacaDevice(Process):
     def run(self):
         print(f"AlpacaDevice {self.device_type} {self.device_number} started with pid [{os.getpid()}]")
         self.active = True
+
+        signal.signal(signal.SIGINT, self.stop__)
+        signal.signal(signal.SIGTERM, self.stop__)
         
         while self.active:
             self.active = self.listenFront__()
@@ -112,32 +116,35 @@ class AlpacaDevice(Process):
         print(f"AlpacaDevice {self.device_type} {self.device_number} stopped")
 
     def listenFront__(self):
-        r = self.back_pipe.recv()
-        message = r[0] if len(r) == 2 else r
+        try:
+            r = self.back_pipe.recv()
+            message = r[0] if len(r) == 2 else r
 
-        if message == "get":
-            self.get__(**r[1])
-            return True
-        elif message == "set":
-            self.set__(**r[1])
-            return True
-        elif message == "start_poll":
-            self.start_poll__(**r[1])
-            return True
-        elif message == "stop_poll":
-            self.stop_poll__(**r[1])
-            return True
-        elif message == "poll_list":
-            self.poll_list__()
-            return True
-        elif message == "poll_latest":
-            self.poll_latest__()
-            return True
-        elif message == "stop":
+            if message == "get":
+                self.get__(**r[1])
+                return True
+            elif message == "set":
+                self.set__(**r[1])
+                return True
+            elif message == "start_poll":
+                self.start_poll__(**r[1])
+                return True
+            elif message == "stop_poll":
+                self.stop_poll__(**r[1])
+                return True
+            elif message == "poll_list":
+                self.poll_list__()
+                return True
+            elif message == "poll_latest":
+                self.poll_latest__()
+                return True
+            elif message == "stop":
+                return False
+            else:
+                print("listenFront__ : unknown message", message)
+                return True
+        except OSError:
             return False
-        else:
-            print("listenFront__ : unknown message", message)
-            return True
 
     ## BACKEND METHODS
 
@@ -255,3 +262,10 @@ class AlpacaDevice(Process):
         except Exception as e:
             self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'poll_latest error: {self.device_type}, {self.device_name}, {str(e)}')}))
             self.back_pipe.send(e)
+
+    def stop__(self, *args):
+        self.active = False
+        
+        # close pipes
+        self.front_pipe.close()
+        self.back_pipe.close()

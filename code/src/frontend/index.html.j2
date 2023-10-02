@@ -89,10 +89,10 @@
                             <div class="flex flex-row justify-center items-center">
                             {# lastest image #}
                                 <div id="summary-last-image-parent-{{ observatory }}" class="flex justify-center basis-1/2 mr-2">
-                                        <img id="summary-last-image-{{ observatory }}" alt="lastest image" class="object-contain h-full w-full hidden">
-                                        <svg xmlns="http://www.w3.org/2000/svg" id="summary-last-image-placeholder-{{ observatory }}" viewBox="0 0 24 24" fill="currentColor" class="w-full p-12 opacity-20">
-                                            <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
-                                        </svg>
+                                    <img id="summary-last-image-{{ observatory }}" alt="lastest image" class="object-contain h-full w-full hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" id="summary-last-image-placeholder-{{ observatory }}" viewBox="0 0 24 24" fill="currentColor" class="w-full p-12 opacity-20">
+                                        <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
+                                    </svg>
                                 </div>
 
                             {# webcam feed #}
@@ -107,6 +107,13 @@
                         {% elif nav == 'Log' %}
                             
                             <div class="flex flex-col space-y-4 h-full">
+
+                                <table id="summary-table-2-{{ observatory }}" class="text-left w-full table-auto rounded-lg bg-gray-600/20">
+                                    <thead>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
 
                                 <div class="flex-none basis-1/4 overflow-auto">
                                     {# <span class="my-4">schedule</span> #}
@@ -565,6 +572,7 @@
                 // remove first item of table1, error free status
                 message['table1'].shift();
                 updateTable("summary-table-1-" + observatory, message['table1'], {"item": "item", "value": "value"}, false);
+                updateTable("summary-table-2-" + observatory, message['table1'], {"item": "item", "value": "value"}, false);
 
                 // update last image
                 let lastImageDiv = document.getElementById("summary-last-image-parent-" + observatory);

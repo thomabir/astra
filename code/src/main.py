@@ -19,6 +19,9 @@ from fastapi.templating import Jinja2Templates
 
 import httpx
 
+# change base directory to code/src
+os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
 logging.basicConfig(
     format='%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s',
     datefmt='%Y-%m-%d %H:%M:%S', filename='../log/astra.log', level=logging.INFO)
@@ -41,7 +44,6 @@ def load_observatories():
     global fws
     global debug
 
-    kill_observatories()
     config_dir = os.path.join('..', 'config')
     config_files = glob(os.path.join(config_dir, '*.yml'))
 
@@ -60,16 +62,8 @@ def load_observatories():
             for fw_name in obs.devices['FilterWheel'].keys():
                 fws[obs.observatory_name][fw_name] = obs.devices['FilterWheel'][fw_name].get('Names')
 
-def kill_observatories():
-    global observatories
-
-    # TODO: kill processes (when it is a process)
-    if len(observatories) > 0:
-        print('Killing observatories')
-        # for obs in observatories.values():
-        #     obs.unload_all()
-
-        observatories = {}
+def clean_up():
+    pass
 
 def format_time(ftime : datetime.datetime):
     # if ftime is not NaTType:
@@ -90,8 +84,6 @@ def convert_fits_to_jpg(fits_file, observatory):
         headers['IMGTYPE'] = hdulist[0].header['IMGTYPE']
         if headers['IMGTYPE'] == 'Light':
             headers['OBJECT'] = hdulist[0].header['OBJECT']
-
-
 
     # Normalize the image data to the 8-bit range (0-255)
     normalized_data = (image_data - image_data.min()) * (255.0 / (image_data.max() - image_data.min()))
@@ -116,7 +108,7 @@ async def lifespan(app: FastAPI):
     load_observatories()
     yield
     # Clean up
-    kill_observatories()
+    clean_up()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -693,4 +685,4 @@ if __name__ == "__main__":
 
     # start the server
     log_level = "info" if not debug else "debug"
-    uvicorn.run(app, host="0.0.0.0", port=8000, log_level=log_level)
+    uvicorn.run(app, host="0.0.0.0", port=8000, log_level=log_level, timeout_graceful_shutdown=0)
