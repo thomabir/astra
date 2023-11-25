@@ -19,7 +19,7 @@ RUN conda env create -f environment.yml
 RUN echo "conda activate astra" >> ~/.bashrc
 ENV PATH /opt/conda/envs/astra/bin:$PATH
 
-# Copy the whole application to the container
+# Copy the whole application to the container but ignore the files in .dockerignore
 COPY . .
 
 # Expose the port your FastAPI app runs on

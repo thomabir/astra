@@ -6,10 +6,10 @@ Telescope:
     pointing_threshold: 0.1 # arcmins
     guider:
       PIX2TIME: 
-        '+x': 61.77
-        '-x': 61.78
-        '+y': 61.87
-        '-y': 61.78
+        '+x': 23.25
+        '-x': 23.25
+        '+y': 23.26
+        '-y': 23.26
       RA_AXIS: 'x'
       DIRECTIONS:
         '+x': East
@@ -21,7 +21,7 @@ Telescope:
         'y': {'p': 0.50, 'i': 0.02, 'd': 0.0}
         'set_x': 0.0
         'set_y': 0.0
-      WAIT_TIME: 5
+      WAIT_TIME: 10
 Focuser:
   - device_name: focuser_SAINTEX
     ip: 10.211.55.3:11111
@@ -39,7 +39,7 @@ Camera:
     temperature: -20
     flats:
       target_adu: [45000, 3000]
-      bias_offset: 1000
+      bias_offset: 300
       lower_exptime_limit: 0.1
       upper_exptime_limit: 10
     paired_devices: 

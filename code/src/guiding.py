@@ -27,7 +27,7 @@ from alpaca.telescope import GuideDirections
 import logging
 
 """
-Confiuguration parameters
+Configuration parameters
 """
 
 # header keyword for the current filter

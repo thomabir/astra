@@ -208,7 +208,7 @@ class AlpacaDevice(Process):
                 if get["status"] == "success":
                     val = get["data"]
                 else:
-                    time.sleep(0)
+                    time.sleep(1)
                     ## try again, just in case...
                     get = self.get__(method, pipe=False)
                     if get["status"] == "success":

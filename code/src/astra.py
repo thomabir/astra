@@ -1,4 +1,5 @@
 import logging
+# import traceback
 
 import time
 from datetime import datetime
@@ -18,6 +19,7 @@ from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.io import fits
 from astropy.time import Time
 from sqlite3worker import Sqlite3Worker  # https://github.com/dashawn888/sqlite3worker
+import sqlite3
 
 from multiprocessing import Manager
 
@@ -112,7 +114,7 @@ class Astra():
 
         self.threads.append({'type': 'queue', 'device_name': 'queue', 'thread': th, 'id' : 'queue'})
 
-        self.cursor = self.create_db(config_filename)
+        self.cursor = self.create_db()
 
         if self.debug is True:
             self.__log('warning', 'Astra is running in debug mode, schedule start time moved to present time and truncated by factor of 100')
@@ -177,6 +179,7 @@ class Astra():
         elif level == 'error':
             self.error_free = False
             logging.error(message, exc_info=True)
+            # print(traceback.format_exc())
         elif level == 'critical':
             logging.critical(message)
         
@@ -186,12 +189,9 @@ class Astra():
         elif level != 'debug':
             self.cursor.execute(f"INSERT INTO log VALUES ('{dt_str}', '{level}', '{message}')")
 
-    def create_db(self, config_filename : str) -> Sqlite3Worker:
+    def create_db(self) -> Sqlite3Worker:
         """
         Creates a new database with the given configuration file name.
-
-        Parameters:
-            config_filename (str): The name of the configuration file.
 
         Returns:
             cursor (Sqlite3Worker): The cursor object for the newly created database.
@@ -235,6 +235,7 @@ class Astra():
 
         try:
             self.run_backup = False
+            self.__log('info', 'Backing up database')
 
             # check disk space
             disk_usage = psutil.disk_usage('/')
@@ -250,19 +251,21 @@ class Astra():
             if not os.path.exists(os.path.join('..', 'log', 'archive')):
                 os.makedirs(os.path.join('..', 'log', 'archive'))
 
-            tables = ['polling', 'log', 'images', 'autoguider_ref', 
-                    'autoguider_log_new', 'autoguider_info_log']
+            tables = ['polling', 'log']
+            # 'images', 'autoguider_ref', 'autoguider_log_new', 'autoguider_info_log'
             
+            db = sqlite3.connect(db_name)
             for table in tables:
                 # backup table
-                df = pd.read_sql_query(f"SELECT * FROM {table} WHERE datetime > datetime('now', '-1 days')", db_name)
+                df = pd.read_sql_query(f"SELECT * FROM {table} WHERE datetime > datetime('now', '-1 days')", db)
                 df.to_csv(os.path.join('..', 'log', 'archive', f'{self.observatory_name}_{table}_{dt_str}.csv'), index=False)
 
                 # once back up complete, delete rows older than 3 days ago from database
                 # to minimize database size for speed
                 self.cursor.execute(f"DELETE FROM {table} WHERE datetime < datetime('now', '-3 days')")
+            db.close()
 
-            self.run_backup = True
+            self.__log('info', 'Database backed up')
         
         except Exception as e:
             self.error_source.append({'device_type': 'Backup', 'device_name': 'backup', 'error': str(e)})
@@ -375,7 +378,7 @@ class Astra():
         # run can<> ascom commands, needed for other commands to work? Else, alternatives needed.
 
         # start watchdog once all devices connected
-        time.sleep(1) # wait for devices to connect and start polling
+        time.sleep(1) # wait for devices to connect and start polling TODO: check one device's latest polling is valid before starting watchdog
         self.start_watchdog()
 
     def unload_all(self) -> None:
@@ -628,21 +631,21 @@ class Astra():
                         # only one device has errors
                         match device_types[0]:
                             case 'SafetyMonitor':
-                                self.close_observatory()
+                                pass
                             case 'ObservingConditions':
-                                self.close_observatory()
+                                pass
                             case 'Telescope':
                                 pass
                             case 'Dome':
                                 pass
                             case 'Guider':
-                                self.close_observatory()
+                                pass
                             case 'Camera':
-                                self.close_observatory()
+                                pass
                             case 'FilterWheel':
-                                self.close_observatory()
+                                pass
                             case 'Focuser':
-                                self.close_observatory()
+                                pass
                             case 'Rotator':
                                 pass
                             case 'CoverCalibrator':
@@ -650,7 +653,7 @@ class Astra():
                             case 'Switch':
                                 pass
                             case 'Schedule':
-                                self.close_observatory()
+                                pass
                             case 'Queue':
                                 # restart queue?
                                 pass
@@ -667,13 +670,17 @@ class Astra():
                     # TODO: Panic mode
 
             # run backup once a day
-            if datetime.utcnow().hour == self.backup_time.hour and datetime.utcnow().minute == self.backup_time.minute and self.run_backup:
+            if datetime.utcnow().hour == self.backup_time.hour and datetime.utcnow().minute == self.backup_time.minute:
+                
+                if self.run_backup is True:
+                    # run backup in separate thread
+                    th = Thread(target=self.backup, daemon = True)
+                    th.start()
 
-                # run backup in separate thread
-                th = Thread(target=self.backup, daemon = True)
-                th.start()
-
-                self.threads.append({'type': 'Backup', 'device_name': 'backup', 'thread': th, 'id' : 'backup'})
+                    self.threads.append({'type': 'Backup', 'device_name': 'backup', 'thread': th, 'id' : 'backup'})
+            
+            else:
+                self.run_backup = True
 
             time.sleep(0.5) # twice the safety monitor polling time
 
@@ -733,6 +740,15 @@ class Astra():
         
         if 'Telescope' in self.observatory:
 
+            # stop guiding
+            for d in self.devices['Telescope']:
+                try:
+                    self.guider[d].running = False
+                except Exception as e:
+                    self.error_source.append({'device_type': 'Guider', 'device_name': d, 'error': str(e)})
+                    self.__log('error', f"Error stopping telescope {d} guiding: {str(e)}")
+                    continue
+
             # stop telescope slewing
             if paired_devices is not None:
                 self.monitor_action('Telescope', 'Slewing', False, 'AbortSlew', 
@@ -761,15 +777,6 @@ class Astra():
                 self.monitor_action('Telescope', 'AtPark', True, 'Park',
                                         log_message = "Parking Telescope(s)")
                 
-            # stop guiding
-            for d in self.devices['Telescope']:
-                self.guider[d].running = False
-                try:
-                    self.guider[d].running = False
-                except Exception as e:
-                    self.error_source.append({'device_type': 'Guider', 'device_name': d, 'error': str(e)})
-                    self.__log('error', f"Error stopping telescope {d} guiding: {str(e)}")
-                    continue
 
             
         if 'Dome' in self.observatory:
@@ -869,7 +876,7 @@ class Astra():
             th = Thread(target=self.monitor_action, args=('Camera', 'CameraState', 0, 'AbortExposure',), daemon=True)
             th.start()
 
-            self.threads.append({'type': 'AbortSlew', 'device_name': 'all_cameras', 'thread': th, 'id' : 'stop_camera'})
+            self.threads.append({'type': 'AbortExposure', 'device_name': 'all_cameras', 'thread': th, 'id' : 'stop_camera'})
 
 
         # wait for all threads to finish
@@ -881,6 +888,7 @@ class Astra():
         self.threads = [i for i in self.threads if i['thread'].is_alive()]
 
         time.sleep(5) # time for interrupt to be caught by other threads
+        # TODO: loop or join through threads and check if they have stopped --> timeout
 
         # reset interrupt
         self.interrupt = False
@@ -992,7 +1000,7 @@ class Astra():
         if self.weather_safe is None:
             self.error_source.append({'device_type': 'SafetyMonitor', 'device_name': '', 'error': 'Weather safety check timed out'})
             self.__log('error', 'Weather safety check timed out')
-            return False
+            return
 
         while self.schedule_running and self.watchdog_running and self.error_free and (self.interrupt is False):
 
@@ -1006,12 +1014,7 @@ class Astra():
             for i, row in self.schedule.iterrows():
 
                 # if schedule item not running, start thread if conditions are met
-                t = datetime.utcnow()
-                if (i not in ids) \
-                    and (row['start_time'] <= t) and (row['end_time'] >= t) \
-                    and ((self.weather_safe is True) or (row['action_type'] in ['calibration'])) \
-                    and (row['completed'] is False) and self.schedule_running and self.error_free \
-                    and (self.interrupt is False):
+                if (i not in ids) and self.check_conditions(row) and (row['completed'] is False):
 
                     th = Thread(target=self.run_action, args=(row,), daemon=True)
                     th.start()
@@ -1019,9 +1022,10 @@ class Astra():
                     self.threads.append({'type': row['action_type'], 'device_name': row['device_name'], 'thread': th, 'id' : i})
                     
                     # if open or close, wait for thread to finish before continuing
+                    # TODO: use join?
                     if row['action_type'] in ['open', 'close']:
                         # wait for thread to finish
-                        while (th.is_alive() is True) and self.weather_safe and self.schedule_running and self.error_free and (self.interrupt is False):
+                        while (th.is_alive() is True) and self.check_conditions(row):
                             time.sleep(1)
 
             # exit while loop if reached end of schedule
@@ -1031,11 +1035,10 @@ class Astra():
             time.sleep(1)
 
         # run headers completion
-        if self.schedule_running and self.error_free and (self.interrupt is False):
-            self.__log('info', 'Completing headers')
-            th = Thread(target=self.final_headers, daemon=True)
-            th.start()
-            self.threads.append({'type': 'Headers', 'device_name': 'astra', 'thread': th, 'id' : "complete_headers"})
+        self.__log('info', 'Completing headers')
+        th = Thread(target=self.final_headers, daemon=True)
+        th.start()
+        self.threads.append({'type': 'Headers', 'device_name': 'astra', 'thread': th, 'id' : "complete_headers"})
 
         self.schedule_running = False
         self.__log('info', 'Schedule stopped')
@@ -1131,8 +1134,7 @@ class Astra():
             if self.error_free and (self.interrupt is False) \
                 and self.schedule_running and self.watchdog_running:
 
-                if ('calibration' == row['action_type']) or self.weather_safe:
-                    print(row.name)
+                if (row['action_type'] in ['calibration', 'close']) or self.weather_safe:
                     self.schedule.loc[row.name, 'completed'] = True
 
         except Exception as e:
@@ -1182,6 +1184,8 @@ class Astra():
         
         if 'object' == row['action_type']:
             hdr['IMGTYPE'] = 'Light'
+        elif 'flats' == row['action_type']:
+            hdr['IMGTYPE'] = 'Flat'
 
         self.__log('debug', f"Finished pre_sequence for {row['device_name']} {row['action_type']} {row['action_value']}")
 
@@ -1215,7 +1219,7 @@ class Astra():
         self.__log('debug', f"Running setup_observatory for {paired_devices} {action_value}")
 
         # unpark and slew to target
-        if ('ra' in action_value) and ('dec' in action_value) and self.weather_safe and self.error_free and (self.interrupt is False):
+        if ('ra' in action_value) and ('dec' in action_value) and self.check_conditions():
 
             if 'Telescope' in paired_devices:
 
@@ -1227,7 +1231,7 @@ class Astra():
 
                 telescope = self.devices['Telescope'][paired_devices['Telescope']]
 
-                if self.weather_safe and self.error_free and (self.interrupt is False):
+                if self.check_conditions():
                 
                     # set tracking to true
                     self.monitor_action('Telescope', 'Tracking', True, 'Tracking', 
@@ -1285,7 +1289,7 @@ class Astra():
         if slewing is True:
             self.__log('info', f"Telescope {paired_devices['Telescope']} slewing...")
 
-        while slewing is True and self.weather_safe and self.error_free and (self.interrupt is False) and self.schedule_running and self.watchdog_running:
+        while slewing is True and self.check_conditions():
 
             if time.time() - start_time > 120: # 2 minutes hardcoded limit
                 raise TimeoutError('Slew timeout')
@@ -1293,7 +1297,26 @@ class Astra():
             time.sleep(1)
 
             slewing = telescope.get('Slewing')
-                
+
+    def check_conditions(self, row : dict = None) -> bool:
+
+        if row is None:
+            return self.weather_safe and self.error_free and (self.interrupt is False) \
+                and self.schedule_running and self.watchdog_running
+
+        if row['action_type'] in ['open', 'object', 'flats', 'autofocus']:
+            return (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
+                and self.weather_safe and self.error_free and (self.interrupt is False) \
+                and self.schedule_running and self.watchdog_running
+        
+        elif row['action_type'] in ['calibration', 'close']:
+            return (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
+                and self.error_free and (self.interrupt is False) \
+                and self.schedule_running and self.watchdog_running
+        
+        else:
+            return False
+                    
     def calibration_sequence(self, row : dict, paired_devices : dict) -> None:
         '''
         Run a bias/dark calibration sequence for a specific camera.
@@ -1333,9 +1356,7 @@ class Astra():
         for i, exptime in enumerate(action_value['exptime']):
 
             count = 0
-            if (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
-                and self.error_free and (self.interrupt is False) \
-                and self.schedule_running and self.watchdog_running:
+            if self.check_conditions(row):
 
                 hdr['EXPTIME'] = exptime
 
@@ -1347,10 +1368,7 @@ class Astra():
                 self.__log('info', f"Exposing {count + 1}/{action_value['n'][i]} {row['device_name']} {hdr['IMGTYPE']} for exposure time {hdr['EXPTIME']} s")
                 camera.get('StartExposure')(Duration = exptime, Light = False)
             
-                while (count < action_value['n'][i]) and (row['start_time'] <= datetime.utcnow()) \
-                        and (row['end_time'] >= datetime.utcnow()) \
-                        and self.error_free and (self.interrupt is False) and self.schedule_running \
-                        and self.watchdog_running:
+                while (count < action_value['n'][i]) and self.check_conditions(row):
 
                     r = camera.get('ImageReady')
                     time.sleep(0) # yield to other threads
@@ -1421,9 +1439,7 @@ class Astra():
         pointing_attempts = 0
         guiding = False
 
-        while (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
-                and self.weather_safe and self.error_free and (self.interrupt is False) \
-                and self.schedule_running and self.watchdog_running:           
+        while self.check_conditions(row):           
  
             r = camera.get('ImageReady')
             time.sleep(0) # yield to other threads
@@ -1492,6 +1508,10 @@ class Astra():
 
                         self.threads.append({'type': 'guider', 'device_name': row['device_name'], 'thread': th, 'id' : 'guider'})
 
+                        # TODO: timeout
+                        while self.guider[paired_devices['Telescope']].running is False:
+                            time.sleep(0.1)
+
                         guiding = True
 
                 # start next exposure
@@ -1544,9 +1564,10 @@ class Astra():
 
         self.__log('info', f"Running flats sequence for {row['device_name']}, starting {row['start_time']} and ending {row['end_time']}")
 
+        # creates folder for images, writes base header, and sets filter to first filter in list
         action_value, folder, hdr = self.pre_sequence(row, paired_devices)
 
-        # camera device (first filter set in pre_sequence by this point)
+        # camera device
         camera = self.devices[row['device_type']][row['device_name']]
 
         # target adu and camera offset needed for flat exposure time calculation
@@ -1570,38 +1591,46 @@ class Astra():
         obs_lon = hdr['LONG-OBS']
         obs_alt = hdr['ALT-OBS']
         obs_location = EarthLocation(lat=obs_lat*u.deg, lon=obs_lon*u.deg, height=obs_alt*u.m)
-        
-        for i, filter_name in enumerate(action_value['filter']):
-            count = 0
-            if (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
-                and self.weather_safe and self.error_free and (self.interrupt is False) \
-                and self.schedule_running and self.watchdog_running:
 
-                # sets filter (and focus, soon)
+        # wait for sun to be in right position
+        take_flats = False
+        while self.check_conditions(row) and (take_flats is False):
+            sun_rising, take_flats, sun_altaz = utils.is_sun_rising(obs_location)
+
+            print(sun_rising, take_flats, obs_location.lat.degree, sun_altaz.alt.degree)
+            if take_flats is False:
+                time.sleep(1)
+        
+        # start taking flats
+        for i, filter_name in enumerate(action_value['filter']):
+            
+            count = 0
+            sun_rising, take_flats, sun_altaz = utils.is_sun_rising(obs_location)
+
+            if self.check_conditions(row) and take_flats:
+
+                # sets filter (and focus, soon...)
                 self.setup_observatory(paired_devices, action_value, filter_list_index = i)
 
-                # move telescope to flat position
+                # opens dome and move telescope to flat position
                 self.flats_position(obs_location, paired_devices, row)
                 
                 # establishing initial exposure time
-                exptime = self.flats_exptime(paired_devices, row, numx, numy, startx, starty, target_adu, offset,
-                                                        lower_exptime_limit, upper_exptime_limit)
+                exptime = self.flats_exptime(paired_devices, row, numx, numy, 
+                                                startx, starty, target_adu, offset,
+                                                lower_exptime_limit, upper_exptime_limit)
                 
                 if exptime < lower_exptime_limit or exptime > upper_exptime_limit:
                     self.__log('info', "Moving on...")
-                    break
+                    continue
 
                 hdr['EXPTIME'] = exptime
-                hdr['IMGTYPE'] = 'Flat'
                 hdr['FILTER'] = filter_name
 
                 camera.get('StartExposure')(Duration = exptime, Light = True)
                 
                 t_last_move = datetime.utcnow()
-                while (count < action_value['n'][i]) and (row['start_time'] <= datetime.utcnow()) \
-                        and (row['end_time'] >= datetime.utcnow()) and self.weather_safe \
-                        and self.error_free and (self.interrupt is False) and self.schedule_running \
-                        and self.watchdog_running:
+                while self.check_conditions(row) and (count < action_value['n'][i]):
                     
                     r = camera.get('ImageReady')
                     time.sleep(0) # yield to other threads
@@ -1621,14 +1650,15 @@ class Astra():
                         filename = self.save_image(camera, hdr, dateobs, t0, maxadu, folder)
 
                         # if time passes 30s, move telescope
-                        if (datetime.utcnow() - t_last_move).total_seconds() >= 30:
+                        if (datetime.utcnow() - t_last_move).total_seconds() > 30:
 
                             # move telescope to flat position
-                            self.flats_position(obs_location, paired_devices)
+                            self.flats_position(obs_location, paired_devices, row)
                             
                             # get new exposure time since moved
-                            exptime = self.flats_exptime(paired_devices, numx, numy, startx, starty, target_adu, offset,
-                                                                    lower_exptime_limit, upper_exptime_limit, exposure_time=exptime)
+                            exptime = self.flats_exptime(paired_devices, row, numx, numy, 
+                                                            startx, starty, target_adu, offset,
+                                                            lower_exptime_limit, upper_exptime_limit, exptime=exptime)
                             t_last_move = datetime.utcnow()
 
                         else:
@@ -1639,14 +1669,14 @@ class Astra():
                                 fraction = (median_adu - offset) / (target_adu[0] - offset)
 
                                 if math.isclose(target_adu[0], median_adu, rel_tol=0, abs_tol=target_adu[1]) is False:
-                                    exptime = exptime * fraction
+                                    exptime = exptime / fraction
 
                                     if exptime < lower_exptime_limit or exptime > upper_exptime_limit:
                                         self.__log('warning', f"Exposure time of {exptime} s out of user defined range of {lower_exptime_limit} s to {upper_exptime_limit} s")
-                                        break
+                                        continue
                                     else:
                                         self.__log('info', f"Setting new exposure time to {exptime} s as median ADU of {median_adu} is not within {target_adu[1]} of {target_adu[0]}")
-     
+    
                         hdr['EXPTIME'] = exptime
 
                         count += 1
@@ -1655,7 +1685,11 @@ class Astra():
                             # start next exposure
                             self.__log('debug', f"Exposing {row['device_name']} again")
                             camera.get('StartExposure')(Duration = exptime, Light = True)
-        
+
+            else:
+                self.__log('info', "Moving on...")
+                break
+    
         self.__log('info', f"Flat sequence ended for {row['device_name']}, starting {row['start_time']} and ending {row['end_time']}")
 
     def flats_position(self, obs_location : EarthLocation, paired_devices : dict, row : dict) -> None:
@@ -1681,34 +1715,41 @@ class Astra():
         if 'Telescope' in paired_devices:
             # check if ready to take flats
             take_flats = False
-            while (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
-                    and (take_flats is False) and self.error_free and (self.interrupt is False) \
-                    and self.weather_safe and self.schedule_running and self.watchdog_running:
-                
+            while self.check_conditions(row) and (take_flats is False):
                 sun_rising, take_flats, sun_altaz = utils.is_sun_rising(obs_location)
 
                 if take_flats is False:
                     time.sleep(1)
 
-            # move telescope to flat position
-            telescope = self.devices['Telescope'][paired_devices['Telescope']]
+            if self.check_conditions(row) and take_flats:
+                
+                # open observatory if not already open
+                self.open_observatory(paired_devices)
 
-            # flat position
-            flat_position = SkyCoord(
-                alt=75 * u.deg, az=sun_altaz.az + 180 * u.degree, obstime=Time.now(), location=obs_location, frame="altaz"
-            )
+                # move telescope to flat position
+                telescope = self.devices['Telescope'][paired_devices['Telescope']]
 
-            # set tracking to true
-            self.monitor_action('Telescope', 'Tracking', True, 'Tracking',
-                                    device_name = paired_devices['Telescope'],
-                                    log_message = f"Setting Telescope {paired_devices['Telescope']} tracking to True")
+                # flat position
+                flat_position = SkyCoord(
+                    alt=75 * u.deg, az=sun_altaz.az + 180 * u.degree, obstime=Time.now(), location=obs_location, frame="altaz"
+                )
 
-            # slew
-            telescope.get('SlewToAltAzAsync')(Azimuth=flat_position.az.deg, Altitude=flat_position.alt.deg)
-            
-            # wait for slew to finish
-            self.wait_for_slew(paired_devices)
+                # set tracking to false
+                self.monitor_action('Telescope', 'Tracking', False, 'Tracking',
+                                        device_name = paired_devices['Telescope'],
+                                        log_message = f"Setting Telescope {paired_devices['Telescope']} tracking to False")
 
+                # slew
+                telescope.get('SlewToAltAzAsync')(Azimuth=flat_position.az.deg, Altitude=flat_position.alt.deg)
+
+                # wait for slew to finish
+                self.wait_for_slew(paired_devices)
+
+                # return tracking to true
+                self.monitor_action('Telescope', 'Tracking', True, 'Tracking',
+                                        device_name = paired_devices['Telescope'],
+                                        log_message = f"Setting Telescope {paired_devices['Telescope']} tracking to True")
+                
     def flats_exptime(self, paired_devices : dict, row : dict, numx : int, numy : int, startx : int, starty : int, target_adu : list,
                         offset : float, lower_exptime_limit : float, upper_exptime_limit : float, exptime : float = None) -> float:
         '''
@@ -1756,15 +1797,13 @@ class Astra():
             
             # initial exposure time guess
             if exptime is None:
-                exptime = (lower_exptime_limit + upper_exptime_limit) / 2
+                exptime = lower_exptime_limit
 
             self.__log('info', f"Exposing subframe of {paired_devices['Camera']} for exposure time {exptime} s")
             camera.get('StartExposure')(Duration = exptime, Light = True)
             
             getting_exptime = True
-            while (row['start_time'] <= datetime.utcnow()) and (row['end_time'] >= datetime.utcnow()) \
-                    and getting_exptime and self.error_free and (self.interrupt is False) \
-                    and self.weather_safe and self.schedule_running and self.watchdog_running:
+            while self.check_conditions(row) and getting_exptime:
                 
                 r = camera.get('ImageReady')
                 time.sleep(0) # yield to other threads
@@ -1775,16 +1814,21 @@ class Astra():
                     fraction = (median_adu - offset) / (target_adu[0] - offset)
   
                     if math.isclose(target_adu[0], median_adu, rel_tol=0, abs_tol=target_adu[1]) is False:
-                        exptime = exptime * fraction
+                        exptime = exptime / fraction
 
-                        if exptime < lower_exptime_limit or exptime > upper_exptime_limit:
-                            self.__log('warning', f"Exposure time of {exptime} s out of user defined range of {lower_exptime_limit} s to {upper_exptime_limit} s")
+                        if exptime > upper_exptime_limit:
+                            self.__log('warning', f"Exposure time of {exptime}s needed for next flat is greater than user defined limit of {upper_exptime_limit}s")
                             getting_exptime = False
+                        elif exptime < lower_exptime_limit:
+                            self.__log('warning', f"Exposure time of {exptime}s needed for next flat is lower than user defined limit of {lower_exptime_limit}s. Will try again in 10s")
+                            getting_exptime = False
+                            # time.sleep(10)
+                            # self.__log('info', f"Exposing subframe of {paired_devices['Camera']} for exposure time {lower_exptime_limit}s")
+                            # camera.get('StartExposure')(Duration = lower_exptime_limit, Light = True)
                         else:
-                            getting_exptime = False
                             # start next exposure to check if correct?
-                            # self.__log('info', f"Exposing subframe of {paired_devices['Camera']} for exposure time {exptime} s")
-                            # camera.get('StartExposure')(Duration = exptime, Light = True)
+                            self.__log('info', f"Exposing subframe of {paired_devices['Camera']} for exposure time {exptime}s")
+                            camera.get('StartExposure')(Duration = exptime, Light = True)
 
                     else:
                         getting_exptime = False
@@ -1888,9 +1932,11 @@ class Astra():
 
         if hdr['IMGTYPE'] == 'Light':
             filename = f"{device.device_name}_{hdr['FILTER']}_{hdr['OBJECT']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"
-        else:
+        elif hdr['IMGTYPE'] in ['Bias', 'Dark']:
             filename = f"{device.device_name}_{hdr['IMGTYPE']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"
-
+        else:
+            filename = f"{device.device_name}_{hdr['FILTER']}_{hdr['IMGTYPE']}_{hdr['EXPTIME']}_{date.strftime('%Y%m%d_%H%M%S.%f')[:-3]}.fits"
+        
         filepath = os.path.join('..', 'images', folder, filename)
 
         self.__log('debug', 'Writing to disk')

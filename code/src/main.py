@@ -362,6 +362,7 @@ async def websocket_weather(websocket: WebSocket, observatory: str):
     await websocket.accept()
     db = sqlite3.connect('../log/' + observatory + '.db')
     
+    # TODO: change to limit instead of datetime
     q = """SELECT * FROM polling WHERE device_type = 'ObservingConditions' AND datetime > datetime('now', '-1 day')"""
 
     initial_df = pd.read_sql_query(q, db)
@@ -493,7 +494,10 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
                 status = 'slewing' if slewing else 'tracking' if tracking else 'stopped'
                 dt = dt_tracking if tracking else dt_slewing if slewing else dt_tracking
 
-                polled['RightAscension']['value'] = polled['RightAscension']['value'] * (360/24) # convert to degrees
+                try:
+                    polled['RightAscension']['value'] = polled['RightAscension']['value'] * (360/24) # convert to degrees
+                except:
+                    pass
 
                 last_update = (dt_now - dt).total_seconds()
 
