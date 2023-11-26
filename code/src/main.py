@@ -122,6 +122,10 @@ async def root(request: Request):
 async def favicon():
     return FileResponse('./frontend/favicon.svg')
 
+@app.get('/js/{file}', include_in_schema=False)
+async def js(file : str):
+    return FileResponse(f'./frontend/js/{file}')
+
 @app.get('/frontend/{image}', include_in_schema=False)
 async def lastest_image(image: str):
     return FileResponse(f'./frontend/{image}')
@@ -314,7 +318,7 @@ async def websocket_log(websocket: WebSocket, observatory: str):
 
     db = sqlite3.connect('../log/' + observatory + '.db')
     
-    q = """SELECT * FROM log WHERE datetime > datetime('now', '-1 day')"""
+    q = """SELECT * FROM (SELECT * FROM log ORDER BY datetime DESC LIMIT 1000) a ORDER BY datetime ASC"""
     initial_df = pd.read_sql_query(q, db)
 
     last_time = initial_df.datetime.iloc[-1]
@@ -473,12 +477,16 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
                         polled_list[device_type][device_name][k]['value'] = polled[k]['value']
                         polled_list[device_type][device_name][k]['datetime'] = polled[k]['datetime']
 
+        threads = [{'type': i['type'], 'device_name': i['device_name'], 'id' : i['id']} for i in obs.threads]
         table0 = []
         table1 = [{"item": "error free" , "value" : obs.error_free},
                   {"item": "utc time" , "value" : datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")},
-                  {"item": "local time" , "value" : datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")},
                   {"item": "watchdog" , "value" : "running" if obs.watchdog_running else "stopped"},
-                  {"item": "schedule" , "value" : "running" if obs.schedule_running else "stopped"}]
+                  {"item": "schedule" , "value" : "running" if obs.schedule_running else "stopped"},
+                  {"item": "weather safe" , "value" : "safe" if obs.weather_safe else "unsafe"},
+                  {"item": "interrupt" , "value" : "on" if obs.interrupt else "off"},
+                  {"item": "error source" , "value" : "none" if len(obs.error_source) == 0 else "hover to see", "error_source": obs.error_source},
+                  {"item": "threads" , "value" : len(threads), "threads": threads}]
 
         if 'Telescope' in obs.devices:
             # we want to know if slewing or tracking

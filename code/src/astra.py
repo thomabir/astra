@@ -506,9 +506,6 @@ class Astra():
 
             if self.error_free is True:
                 try:      
-                    # cleanup dead threads
-                    self.threads = [i for i in self.threads if i['thread'].is_alive()]
-
                     # check if schedule file updated
                     try:
                         schedule_mtime = os.path.getmtime(self.schedule_path)
@@ -584,23 +581,28 @@ class Astra():
 
                             # may want to close dome before park telescope?
                             self.close_observatory() # checks if already closed and closes if not
-                            weather_warning = True
 
                         # check weather history for weather unsafe
                         if self.truncate_schedule is True:
                             rows = self.cursor.execute("SELECT * FROM polling WHERE device_type = 'SafetyMonitor' AND device_value = 'False' AND datetime > datetime('now', '-1 minutes')")
                         else:
-                            rows = self.cursor.execute("SELECT * FROM polling WHERE device_type = 'SafetyMonitor' AND device_value = 'False' AND datetime > datetime('now', '-30 minutes')")
+                            rows = self.cursor.execute("SELECT * FROM polling WHERE device_type = 'SafetyMonitor' AND device_value = 'False' AND datetime > datetime('now', '-60 minutes')")
 
                     else:
                         rows = []
 
                     self.__log('debug', f"Watchdog: {len(rows)} instances of weather unsafe found in last 1 minutes")
                     
-                    # if no weather unsafe in last 30 minutes, weather is "safe"
+                    # if no weather unsafe in last 60 minutes, weather is "safe"
+                    if len(rows) == 0 and weather_warning is True:
+                        self.__log('info', 'Weather safe for the last 60 minutes')
+
                     if len(rows) == 0:
                         self.weather_safe = True
                         weather_warning = False # reset weather_warning flag
+                    else:
+                        self.weather_safe = False # set here too just in case watchdog started after weather unsafe
+                        weather_warning = True
                         
                 except Exception as e:
                     self.error_source.append({'device_type': 'Watchdog', 'device_name': 'watchdog', 'error': str(e)})
@@ -608,13 +610,11 @@ class Astra():
 
             else:
                 try:
-                    # stop watchdog
-                    self.watchdog_running = False
-
                     # stop schedule
                     self.schedule_running = False  
 
                     # wait a bit to see if it's a multi-device error?
+                    self.__log('info', 'Waiting 30 seconds to see if error is multi-device. Main watchdog thread exited.')
                     time.sleep(30)
 
                     # make pandas dataframe of error_source
@@ -628,6 +628,7 @@ class Astra():
                         self.__log('error', f"Multiple devices have errors: {device_names}. Panic.")
                         # TODO: Panic mode
                     elif len(device_names) == 1 and len(device_types) == 1:
+                        self.__log('warning', f"Device {device_names[0]} has errors.")
                         # only one device has errors
                         match device_types[0]:
                             case 'SafetyMonitor':
@@ -668,6 +669,8 @@ class Astra():
                 except Exception as e:
                     self.__log('error', f"Error during error handling: {str(e)}")
                     # TODO: Panic mode
+                
+                break # exit watchdog loop
 
             # run backup once a day
             if datetime.utcnow().hour == self.backup_time.hour and datetime.utcnow().minute == self.backup_time.minute:
@@ -685,6 +688,7 @@ class Astra():
             time.sleep(0.5) # twice the safety monitor polling time
 
 
+        self.schedule_running = False # stop schedule if watchdog stopped
         self.watchdog_running = False
         self.__log('warning', 'Watchdog stopped')
     
@@ -2289,6 +2293,10 @@ class Astra():
                     self.__log(r['data'][0], r['data'][1])
                     if r['data'][0] == 'error':
                         self.error_source.append({'device_type': metadata['device_type'], 'device_name': metadata['device_name'], 'error': r['data'][1]})
+
+                # pick up work of watchdog
+                # cleanup dead threads
+                self.threads = [i for i in self.threads if i['thread'].is_alive()]
 
             except Exception as e:
                 self.error_source.append({'device_type': 'Queue', 'device_name': 'queue_get', 'error': str(e)})
