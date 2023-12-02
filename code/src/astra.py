@@ -1334,20 +1334,16 @@ class Astra():
     def perform_exposure(
         self, camera, exptime, row, hdr, use_light=True, log_option=None, maximal_sleep_time=0.01
     ) -> bool:
-        """Perform camera exposure, log information, and wait for image to be ready.
-        Parameters
-        ----------
-        use_light : bool, optional
-            Whether to use light during the exposure (default is True).
-        log_option : str or None, optional
-            Additional information for logging (default is None, adding nothing).
-        maximal_sleep_time : float, optional
-            The maximum sleep time in seconds during the waiting process (default is 0.01).
+        """
+        Perform camera exposure, log information, and wait for the image to be ready.
 
-        Returns
-        -------
-        bool
-            True if the exposure was successful, False otherwise.        
+        Parameters:
+            use_light (bool, optional): Whether to use light during the exposure (default is True).
+            log_option (str or None, optional): Additional information for logging (default is None, adding nothing).
+            maximal_sleep_time (float, optional): The maximum sleep time in seconds during the waiting process (default is 0.01).
+
+        Returns:
+            bool: True if the exposure was successful, False otherwise.
         """
         # TODO consider waiting dynamically
         # def wait_for_image_ready(exptime):
@@ -1412,7 +1408,6 @@ class Astra():
 
         Parameters:
             row (dict): A dictionary containing information about the camera and calibration settings.
-
                 - 'device_name' (str): The name of the camera device.
                 - 'start_time' (datetime): The start time for the calibration sequence.
                 - 'end_time' (datetime): The end time for the calibration sequence.
