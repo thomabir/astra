@@ -26,7 +26,7 @@ Focuser:
   - device_name: focuser_Callisto
     ip: localhost:11111
     device_number: 0
-    focus_pos: 6940
+    focus_pos: 6955
 Camera:
   - device_name: camera_Callisto
     ip: localhost:11111
@@ -40,14 +40,14 @@ Camera:
     paired_devices: 
       Telescope: telescope_Callisto
       Focuser: focuser_Callisto
-      # Dome: dome_Callisto
+      Dome: dome_Callisto
       FilterWheel: fw_Callisto
       ObservingConditions: weather_Callisto
       SafetyMonitor: safety_Callisto
-# Dome:
-#   - device_name: dome_Callisto
-#     ip: localhost:11111
-#     device_number: 0
+Dome:
+  - device_name: dome_Callisto
+    ip: localhost:11111
+    device_number: 0
 FilterWheel:
   - device_name: fw_Callisto
     ip: localhost:11111 

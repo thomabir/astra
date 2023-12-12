@@ -167,13 +167,13 @@ class AlpacaDevice(Process):
         ## method getter
         try:
             # permit 3 attempts
-            data = None
+            data = "not get"
             if self.debug:
                 self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Getting method: {self.device_type}, {self.device_name}, {method}')}))
 
             for i in range(2):
                 try:
-                    if data is None:
+                    if data == "not get":
                         data = getattr(self.device, method)
 
                         # if kwargs, call method with kwargs
@@ -188,17 +188,13 @@ class AlpacaDevice(Process):
                 except Exception as e:
                     time.sleep(0)
                     self.queue.put((self.metadata, {"type" : "log", "data" : ("warning", f'Get method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...')}))
-                    
-                    if self._poll_pause:
-                        time.sleep(30)
-                    else:
-                        time.sleep(1)
-
+                    time.sleep(1)
                     continue
+
                 time.sleep(0)
 
             # final run. If error, caught by try/except 
-            if data is None:
+            if data == "not get":
                 data = getattr(self.device, method)
 
                 # if kwargs, call method with kwargs
@@ -242,12 +238,7 @@ class AlpacaDevice(Process):
                 except Exception as e:
                     time.sleep(0)
                     self.queue.put((self.metadata, {"type" : "log", "data" : ("warning", f'Set method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...')}))
-                    
-                    if self._poll_pause:
-                        time.sleep(30)
-                    else:
-                        time.sleep(1)
-
+                    time.sleep(1)
                     continue
                 time.sleep(0)
 

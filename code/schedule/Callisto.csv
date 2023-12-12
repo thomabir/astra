@@ -1,2 +1,3 @@
 device_type,device_name,action_type,action_value,start_time,end_time
-Camera,camera_Callisto,calibration,"{'exptime': [0,10], 'n': [10,10]}",2023-12-10 05:37:00,2023-12-11 22:37:00
+Camera,camera_Callisto,object,"{'object': 'test', 'filter': 'I+z', 'ra': 72.90489999999998, 'dec': -58.314456944444444, 'exptime': 10, 'guiding': False, 'pointing': False}",2023-12-12 00:05:20.020,2023-12-12 04:31:00.020
+Camera,camera_Callisto,close,{},2023-12-12 00:05:20.020,2023-12-12 04:35:00.020

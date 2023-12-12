@@ -1167,8 +1167,11 @@ class Astra():
                                     device_name = row['device_name'],
                                     run_command_type='set',
                                     abs_tol=1,
-                                    log_message = f"Setting camera {row['device_name']} temperature to {set_temperature}",
+                                    log_message = f"Setting camera {row['device_name']} temperature to {set_temperature}C with tolerance of 1C",
                                     timeout = 60*30) # 30 minutes
+
+            if not self.check_conditions(row):
+                return
 
             if 'object' == row['action_type']:
                 self.object_sequence(row, paired_devices)
