@@ -513,7 +513,7 @@ def ack_astelos_error(telescope):
         # clear errors
         telescope.get('CommandBlind', Command = "TELESCOPE.STATUS.CLEAR_ERROR=2", Raw = True)
 
-        time.sleep(1)
+        time.sleep(5)
 
         # check telescope status
         valid, all_errors, messages = check_astelos_error(telescope)

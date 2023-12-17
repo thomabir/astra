@@ -190,6 +190,8 @@ def close_observatory(observatory: str):
 @app.get("/api/startwatchdog/{observatory}")
 async def start_watchdog(observatory: str):
     obs = observatories[observatory]
+    obs.error_free = True
+    obs.error_source = []
     obs.start_watchdog()
 
     return {"status": "success", "data": "null", "message": ""}

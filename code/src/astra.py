@@ -741,21 +741,9 @@ class Astra():
         self.schedule_running = False # stop schedule if watchdog stopped
         self.watchdog_running = False
         self.__log('warning', 'Watchdog stopped')
-    
-    def open_observatory(self, paired_devices : dict = None) -> None:
-        """
-        Opens the observatory in a controlled sequence: first, it opens the dome shutter if available, 
-        and then it unparks the telescope if available and weather safe.
 
-        Parameters:
-            paired_devices (dict): A dictionary of paired devices. Defaults to None.
+    def astelos_check_and_ack_error(self):
 
-        """
-
-        # SPECULOOS EDIT
-        self.pause_polls(['Dome', 'Telescope', 'Focuser'])
-
-        # SPECULOOS EDIT
         if 'Telescope' in self.observatory:
             for telescope_name in self.devices['Telescope']:
                 telescope = self.devices['Telescope'][telescope_name]
@@ -774,6 +762,23 @@ class Astra():
                         self.error_source.append({'device_type': 'Telescope', 'device_name': telescope_name, 'error': "AsTelOS errors not successfully acknowledged"})
                         self.__log('error', f"AsTelOS errors not successfully acknowledged for {telescope_name}: {messages}")
 
+    
+    def open_observatory(self, paired_devices : dict = None) -> None:
+        """
+        Opens the observatory in a controlled sequence: first, it opens the dome shutter if available, 
+        and then it unparks the telescope if available and weather safe.
+
+        Parameters:
+            paired_devices (dict): A dictionary of paired devices. Defaults to None.
+
+        """
+
+        # SPECULOOS EDIT
+        self.pause_polls(['Dome', 'Telescope', 'Focuser'])
+
+        # SPECULOOS EDIT
+        self.astelos_check_and_ack_error()
+
         if 'Dome' in self.observatory:
             if self.weather_safe and self.error_free and (self.interrupt is False):
                 # open dome shutter
@@ -785,6 +790,9 @@ class Astra():
                     self.monitor_action('Dome', 'ShutterStatus', 0, 'OpenShutter',
                                         log_message = "Opening Dome shutter(s)")
 
+                # SPECULOOS EDIT
+                self.astelos_check_and_ack_error()
+
         if 'Telescope' in self.observatory:
             if self.weather_safe and self.error_free and (self.interrupt is False):
                 # unpark telescope
@@ -795,6 +803,9 @@ class Astra():
                 else:
                     self.monitor_action('Telescope', 'AtPark', False, 'Unpark',
                                         log_message = "Unparking Telescope(s)")
+                    
+                # SPECULOOS EDIT
+                self.astelos_check_and_ack_error()
 
         # SPECULOOS EDIT
         self.resume_polls(['Dome', 'Telescope', 'Focuser'])
