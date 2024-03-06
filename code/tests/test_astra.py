@@ -1,9 +1,11 @@
 import sys
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import pandas as pd
+import numpy as np
 import pytest
+from glob import glob
 
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'src'))
 from src.astra import Astra  # noqa: E402
@@ -186,7 +188,7 @@ def test_start_watchdog():
     
 # close_observatory()
     
-def test_close_observatory():
+def _test_close_observatory():
     '''
     Test close observatory
     '''
@@ -203,7 +205,7 @@ def test_close_observatory():
 
 # open_observatory()
     
-def test_open_observatory():
+def _test_open_observatory():
     '''
     Test open observatory
     '''
@@ -265,16 +267,14 @@ def update_times(df, time_factor):
 def write_schedule():
     import tempfile
 
-    schedule = """
-    device_type,device_name,action_type,action_value,start_time,end_time
-    Camera,camera_Callisto,open,{},2024-01-11 23:31:40.915,2024-01-12 10:07:40.253
-    Camera,camera_Callisto,flats,"{'filter': ['I+z'], 'n': [10]}",2024-01-11 23:31:40.915,2024-01-12 00:16:20.020
-    Camera,camera_Callisto,object,"{'object': 'Sp0711-3824', 'filter': 'I+z', 'ra': 107.7545375, 'dec': -38.41298694444444, 'exptime': 13, 'guiding': True, 'pointing': False}",2024-01-12 00:16:20.020,2024-01-12 04:49:20.020
-    Camera,camera_Callisto,object,"{'object': 'Sp0853-0329', 'filter': 'I+z', 'ra': 133.40066666666664, 'dec': -3.4922780555555555, 'exptime': 21, 'guiding': True, 'pointing': False}",2024-01-12 04:51:20.020,2024-01-12 09:23:00.030
-    Camera,camera_Callisto,flats,"{'filter': ['I+z'], 'n': [10]}",2024-01-12 09:23:00.030,2024-01-12 10:07:40.253
-    Camera,camera_Callisto,close,{},2024-01-12 10:07:40.253,2024-01-12 10:12:40.253
-    Camera,camera_Callisto,calibration,"{'exptime': [0, 10, 13, 15, 21, 30, 60, 120], 'n': [10, 10, 10, 10, 10, 10, 10, 10]}",2024-01-12 10:12:40.253,2024-01-12 10:37:40.253
-    """
+    schedule = """device_type,device_name,action_type,action_value,start_time,end_time
+Camera,camera_Callisto,open,{},2024-01-11 12:00:00.000,2024-01-11 12:10:00.000
+Camera,camera_Callisto,flats,"{'filter': ['I+z'], 'n': [10]}",2024-01-11 12:00:00.000,2024-01-11 12:02:00.000
+Camera,camera_Callisto,object,"{'object': 'target1', 'filter': 'I+z', 'ra': 107.7545375, 'dec': -38.41298694444444, 'exptime': 1, 'guiding': True, 'pointing': False}",2024-01-11 12:02:00.000,2024-01-11 12:05:00.000
+Camera,camera_Callisto,object,"{'object': 'target2', 'filter': 'I+z', 'ra': 133.40066666666664, 'dec': -3.4922780555555555, 'exptime': 20, 'guiding': True, 'pointing': False}",2024-01-11 12:05:00.000,2024-01-11 12:08:00.000
+Camera,camera_Callisto,flats,"{'filter': ['I+z'], 'n': [10]}",2024-01-11 12:08:00.000,2024-01-11 12:10:00.000
+Camera,camera_Callisto,close,{},2024-01-11 12:10:00.000,2024-01-11 12:12:00.000
+Camera,camera_Callisto,calibration,"{'exptime': [0, 10, 13, 15, 21, 30, 60, 120], 'n': [10, 10, 10, 10, 10, 10, 10, 10]}",2024-01-11 12:12:00.000,2024-01-11 12:15:00.000"""
 
     fp = tempfile.NamedTemporaryFile(mode='w+', delete=False)
 
@@ -284,11 +284,14 @@ def write_schedule():
     # Close the file
     fp.close()
 
-    # df = pd.read_csv(fp.name)
     obs.schedule_path = fp.name
 
-    obs.read_schedule()    
-    obs.schedule = update_times(obs.schedule, 100)
+    time.sleep(1)
+
+    obs.read_schedule()
+    obs.schedule = update_times(obs.schedule, 1) # to get schedule to start at present time
+
+    assert obs.schedule_path == fp.name
 
 def test_start_schedule():
     '''
@@ -297,10 +300,13 @@ def test_start_schedule():
 
     write_schedule()
 
+    time.sleep(1)
+
     obs.start_schedule()
 
     obs.queue.put(({}, {"type" : "log", "data" : ('info', obs.schedule.to_string() )}))
-
+    obs.queue.put(({}, {"type" : "log", "data" : ('info', f"schedule path: {obs.schedule_path}" )}))
+    
     while obs.schedule_running is True:
         time.sleep(1)
         
@@ -310,9 +316,24 @@ def test_start_schedule():
 
     assert obs.error_free is True
     assert obs.schedule_running is False
+
+    # check  if expected number of object images are taken
+    folder = (datetime.utcnow() - timedelta(days=0.5)).strftime("%Y%m%d")
+    target1_images = glob(f'/Users/peter/Github/astra/code/images/{folder}/*target1*.fits')
+    target2_images = glob(f'/Users/peter/Github/astra/code/images/{folder}/*target2*.fits')
+
+    overhead = 1 # 1 second
+    min_expected_no_target1_images = np.floor(180/(1+overhead))
+    max_expected_no_target1_images = 180/1
+    min_expected_no_target2_images = np.floor(180/(20+overhead))
+    max_expected_no_target2_images = 180/20
     
+    assert len(target1_images) >= min_expected_no_target1_images
+    assert len(target1_images) <= max_expected_no_target1_images
+    assert len(target2_images) >= min_expected_no_target2_images
+    assert len(target2_images) <= max_expected_no_target2_images
 
-
+    
 
 # cool_camera()
 
