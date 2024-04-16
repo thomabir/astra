@@ -22,6 +22,7 @@ import signal
 # https://medium.com/@sampsa.riikonen/doing-python-multiprocessing-the-right-way-a54c1880e300
 # https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio
 
+
 class AlpacaDevice(Process):
     def __init__(self, ip, device_type, device_number, device_name, queue, debug=False):
         super().__init__()
@@ -30,7 +31,18 @@ class AlpacaDevice(Process):
         self.queue = queue
         self.debug = debug
 
-        if device_type in ["Telescope", "Camera", "CoverCalibrator", "Dome", "FilterWheel", "Focuser", "ObservingConditions", "Rotator", "SafetyMonitor", "Switch"]:
+        if device_type in [
+            "Telescope",
+            "Camera",
+            "CoverCalibrator",
+            "Dome",
+            "FilterWheel",
+            "Focuser",
+            "ObservingConditions",
+            "Rotator",
+            "SafetyMonitor",
+            "Switch",
+        ]:
             self.device = globals()[device_type](ip, device_number)
         else:
             print(f"{device_type} is not a valid device type")
@@ -40,20 +52,33 @@ class AlpacaDevice(Process):
         self.device_number = device_number
         self.device_type = device_type
         self.device_name = device_name
-        self.metadata = {"ip" : ip, "device_type" : device_type, "device_number" : device_number, "device_name" : device_name}
+        self.metadata = {
+            "ip": ip,
+            "device_type": device_type,
+            "device_number": device_number,
+            "device_name": device_name,
+        }
 
         self._poll_list = []
         self._poll_latest = {}
         self._poll_pause = False
 
-        self.queue.put((self.metadata, {"type" : "log", "data" : ("info", f'{device_type} {device_name} loaded')}))
+        self.queue.put(
+            (
+                self.metadata,
+                {
+                    "type": "log",
+                    "data": ("info", f"{device_type} {device_name} loaded"),
+                },
+            )
+        )
 
     ## FRONTEND METHODS
 
     def get(self, method, **kwargs):
         ## method getter
         with self.lock:
-            self.front_pipe.send(["get", {"method" : method, **kwargs}])
+            self.front_pipe.send(["get", {"method": method, **kwargs}])
             msg = self.front_pipe.recv()
             if isinstance(msg, Exception):
                 raise msg
@@ -63,7 +88,7 @@ class AlpacaDevice(Process):
     def set(self, method, value):
         ## property setter
         with self.lock:
-            self.front_pipe.send(["set", {"method" : method, "value" : value}])
+            self.front_pipe.send(["set", {"method": method, "value": value}])
             msg = self.front_pipe.recv()
             if isinstance(msg, Exception):
                 raise msg
@@ -72,12 +97,12 @@ class AlpacaDevice(Process):
 
     def start_poll(self, method, delay):
         with self.lock:
-            self.front_pipe.send(["start_poll", {"method" : method, "delay": delay}])
+            self.front_pipe.send(["start_poll", {"method": method, "delay": delay}])
 
     def stop_poll(self, method=None):
         with self.lock:
-            self.front_pipe.send(["stop_poll", {"method" : method}])
-    
+            self.front_pipe.send(["stop_poll", {"method": method}])
+
     def pause_polls(self):
         with self.lock:
             self.front_pipe.send("pause_polls")
@@ -85,7 +110,7 @@ class AlpacaDevice(Process):
     def resume_polls(self):
         with self.lock:
             self.front_pipe.send("resume_polls")
-    
+
     def poll_list(self):
         with self.lock:
             self.front_pipe.send("poll_list")
@@ -113,12 +138,14 @@ class AlpacaDevice(Process):
     ## BACKEND CORE
 
     def run(self):
-        print(f"AlpacaDevice {self.device_type} {self.device_number} started with pid [{os.getpid()}]")
+        print(
+            f"AlpacaDevice {self.device_type} {self.device_number} started with pid [{os.getpid()}]"
+        )
         self.active = True
 
         signal.signal(signal.SIGINT, self.stop__)
         signal.signal(signal.SIGTERM, self.stop__)
-        
+
         while self.active:
             self.active = self.listenFront__()
 
@@ -169,7 +196,18 @@ class AlpacaDevice(Process):
             # permit 3 attempts
             data = "not get"
             if self.debug:
-                self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Getting method: {self.device_type}, {self.device_name}, {method}')}))
+                self.queue.put(
+                    (
+                        self.metadata,
+                        {
+                            "type": "log",
+                            "data": (
+                                "debug",
+                                f"Getting method: {self.device_type}, {self.device_name}, {method}",
+                            ),
+                        },
+                    )
+                )
 
             for i in range(2):
                 try:
@@ -178,47 +216,95 @@ class AlpacaDevice(Process):
 
                         # if kwargs, call method with kwargs
                         if kwargs:
-                            if 'no_kwargs' in kwargs:
+                            if "no_kwargs" in kwargs:
                                 data = data()
                             else:
                                 data = data(**kwargs)
 
                         if self.debug:
-                            self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Get method success: {self.device_type}, {self.device_name}, {method}')}))
+                            self.queue.put(
+                                (
+                                    self.metadata,
+                                    {
+                                        "type": "log",
+                                        "data": (
+                                            "debug",
+                                            f"Get method success: {self.device_type}, {self.device_name}, {method}",
+                                        ),
+                                    },
+                                )
+                            )
                 except Exception as e:
                     time.sleep(0)
-                    self.queue.put((self.metadata, {"type" : "log", "data" : ("warning", f'Get method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...')}))
+                    self.queue.put(
+                        (
+                            self.metadata,
+                            {
+                                "type": "log",
+                                "data": (
+                                    "warning",
+                                    f"Get method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...",
+                                ),
+                            },
+                        )
+                    )
                     time.sleep(1)
                     continue
 
                 time.sleep(0)
 
-            # final run. If error, caught by try/except 
+            # final run. If error, caught by try/except
             if data == "not get":
                 data = getattr(self.device, method)
 
                 # if kwargs, call method with kwargs
                 if kwargs:
-                    if 'no_kwargs' in kwargs:
+                    if "no_kwargs" in kwargs:
                         data = data()
                     else:
                         data = data(**kwargs)
 
                 if self.debug:
-                    self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Get method success: {self.device_type}, {self.device_name}, {method}')}))
+                    self.queue.put(
+                        (
+                            self.metadata,
+                            {
+                                "type": "log",
+                                "data": (
+                                    "debug",
+                                    f"Get method success: {self.device_type}, {self.device_name}, {method}",
+                                ),
+                            },
+                        )
+                    )
 
             time.sleep(0)
 
             if pipe:
-                self.back_pipe.send(data) # check if valid, need args?
+                self.back_pipe.send(data)  # check if valid, need args?
             else:
-                return {"status" : "success", "data" : data, "message" : ""}
+                return {"status": "success", "data": data, "message": ""}
         except Exception as e:
             if pipe:
-                self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'Get method error with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}')}))
+                self.queue.put(
+                    (
+                        self.metadata,
+                        {
+                            "type": "log",
+                            "data": (
+                                "error",
+                                f"Get method error with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}",
+                            ),
+                        },
+                    )
+                )
                 self.back_pipe.send(e)
             else:
-                return {"status" : "error", "data" : "null", "message" : f"Get method error: {str(e)}"}
+                return {
+                    "status": "error",
+                    "data": "null",
+                    "message": f"Get method error: {str(e)}",
+                }
 
     def set__(self, method, value):
         ## property setter
@@ -226,7 +312,18 @@ class AlpacaDevice(Process):
             # permit 3 attempts
             data = "not set"
             if self.debug:
-                self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Setting method: {self.device_type}, {self.device_name}, {method}')}))
+                self.queue.put(
+                    (
+                        self.metadata,
+                        {
+                            "type": "log",
+                            "data": (
+                                "debug",
+                                f"Setting method: {self.device_type}, {self.device_name}, {method}",
+                            ),
+                        },
+                    )
+                )
 
             for i in range(2):
                 try:
@@ -234,26 +331,70 @@ class AlpacaDevice(Process):
                         data = setattr(self.device, method, value)
 
                         if self.debug:
-                            self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Set method success: {self.device_type}, {self.device_name}, {method} with data {str(data)}')}))
+                            self.queue.put(
+                                (
+                                    self.metadata,
+                                    {
+                                        "type": "log",
+                                        "data": (
+                                            "debug",
+                                            f"Set method success: {self.device_type}, {self.device_name}, {method} with data {str(data)}",
+                                        ),
+                                    },
+                                )
+                            )
                 except Exception as e:
                     time.sleep(0)
-                    self.queue.put((self.metadata, {"type" : "log", "data" : ("warning", f'Set method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...')}))
+                    self.queue.put(
+                        (
+                            self.metadata,
+                            {
+                                "type": "log",
+                                "data": (
+                                    "warning",
+                                    f"Set method failed with data {str(data)}: {self.device_type}, {self.device_name}, {method}, {str(e)}, trying again...",
+                                ),
+                            },
+                        )
+                    )
                     time.sleep(1)
                     continue
                 time.sleep(0)
 
-            # final run. If error, caught by try/except 
+            # final run. If error, caught by try/except
             if data == "not set":
                 data = setattr(self.device, method, value)
 
                 if self.debug:
-                    self.queue.put((self.metadata, {"type" : "log", "data" : ("debug", f'Set method success: {self.device_type}, {self.device_name}, {method}, with data {str(data)}')}))
+                    self.queue.put(
+                        (
+                            self.metadata,
+                            {
+                                "type": "log",
+                                "data": (
+                                    "debug",
+                                    f"Set method success: {self.device_type}, {self.device_name}, {method}, with data {str(data)}",
+                                ),
+                            },
+                        )
+                    )
 
             time.sleep(0)
-            self.back_pipe.send(data) # check if valid, need args?
+            self.back_pipe.send(data)  # check if valid, need args?
         except Exception as e:
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'Set method error: {self.device_type}, {self.device_name}, {method}, {str(e)}')}))
-            self.back_pipe.send(e) # check if valid, need args?
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "error",
+                            f"Set method error: {self.device_type}, {self.device_name}, {method}, {str(e)}",
+                        ),
+                    },
+                )
+            )
+            self.back_pipe.send(e)  # check if valid, need args?
 
     def loop__(self, method, delay):
         self._poll_list.append(method)
@@ -279,53 +420,138 @@ class AlpacaDevice(Process):
                     dt = datetime.utcnow()
                     dt_str = dt.strftime("%Y-%m-%d %H:%M:%S.%f")
 
-                    self.queue.put((self.metadata, {"type" : "query", "data" : f"INSERT INTO polling VALUES ('{self.device_type}', '{self.device_name}',  '{method}', '{val}', '{dt_str}')"}))
-                    
+                    self.queue.put(
+                        (
+                            self.metadata,
+                            {
+                                "type": "query",
+                                "data": f"INSERT INTO polling VALUES ('{self.device_type}', '{self.device_name}',  '{method}', '{val}', '{dt_str}')",
+                            },
+                        )
+                    )
+
                     self._poll_latest[method]["value"] = val
                     self._poll_latest[method]["datetime"] = dt
-                    
+
                     time.sleep(delay)
                 time.sleep(0)
         except Exception as e:
             dt = datetime.utcnow()
             self._poll_latest[method]["datetime"] = dt
             self._poll_latest[method]["value"] = "null"
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'Loop error: {self.device_type}, {self.device_name}, {method}, {str(e)}')}))
-        
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "error",
+                            f"Loop error: {self.device_type}, {self.device_name}, {method}, {str(e)}",
+                        ),
+                    },
+                )
+            )
+
     def start_poll__(self, method, delay):
         if method not in self._poll_list:
             Thread(target=self.loop__, args=(method, delay), daemon=True).start()
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('info', f'{self.device_type}, {self.device_name}, {method} poll started with {delay} second cadence')}))
-    
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "info",
+                            f"{self.device_type}, {self.device_name}, {method} poll started with {delay} second cadence",
+                        ),
+                    },
+                )
+            )
+
     def stop_poll__(self, method=None):
         if method is None:
             self._poll_list = []
             self._poll_latest = {}
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('info', f'{self.device_type}, {self.device_name}, all polls stopped')}))
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "info",
+                            f"{self.device_type}, {self.device_name}, all polls stopped",
+                        ),
+                    },
+                )
+            )
         elif method in self._poll_list:
             self._poll_list = list(filter((method).__ne__, self._poll_list))
             del self._poll_latest[method]
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('info', f'{self.device_type}, {self.device_name}, {method} poll stopped. {self._poll_list} left in poll list, and {self._poll_latest} left in poll dict')}))       
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "info",
+                            f"{self.device_type}, {self.device_name}, {method} poll stopped. {self._poll_list} left in poll list, and {self._poll_latest} left in poll dict",
+                        ),
+                    },
+                )
+            )
         else:
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('warning', f'Stop poll error: {self.device_type}, {self.device_name}, {method} not in poll list.')}))
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "warning",
+                            f"Stop poll error: {self.device_type}, {self.device_name}, {method} not in poll list.",
+                        ),
+                    },
+                )
+            )
 
     def poll_list__(self):
         try:
             self.back_pipe.send(self._poll_list)
-        except Exception as e:    
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'poll_list error: {self.device_type}, {self.device_name}, {str(e)}')}))
+        except Exception as e:
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "error",
+                            f"poll_list error: {self.device_type}, {self.device_name}, {str(e)}",
+                        ),
+                    },
+                )
+            )
             self.back_pipe.send(e)
 
     def poll_latest__(self):
         try:
             self.back_pipe.send(self._poll_latest)
         except Exception as e:
-            self.queue.put((self.metadata, {"type" : "log", "data" : ('error', f'poll_latest error: {self.device_type}, {self.device_name}, {str(e)}')}))
+            self.queue.put(
+                (
+                    self.metadata,
+                    {
+                        "type": "log",
+                        "data": (
+                            "error",
+                            f"poll_latest error: {self.device_type}, {self.device_name}, {str(e)}",
+                        ),
+                    },
+                )
+            )
             self.back_pipe.send(e)
 
     def stop__(self, *args):
         self.active = False
-        
+
         # close pipes
         self.front_pipe.close()
         self.back_pipe.close()

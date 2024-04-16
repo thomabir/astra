@@ -1,28 +1,23 @@
 import math
 import os
-from datetime import datetime, timedelta
+import sqlite3
 import time
+from datetime import datetime, timedelta
+from typing import Optional, Tuple, Union
 
+import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import AltAz, get_sun, SkyCoord, Angle
+import twirl
+from astropy.coordinates import AltAz, Angle, SkyCoord, get_sun
 from astropy.io import fits
 from astropy.stats import SigmaClip
 from astropy.time import Time
-import astropy.units as u
-from astropy.wcs import utils
-
 from astropy.units import Quantity
-
+from astropy.wcs import utils
 from photutils.background import Background2D, MedianBackground
-
 from scipy import ndimage
 
-import twirl
-
-from typing import Optional, Tuple, Union
-
-import sqlite3
 
 ## for new images
 def create_image_dir():
@@ -35,27 +30,29 @@ def create_image_dir():
         pass
     return folder
 
+
 ## for final fits header
 def interpolate_dfs(index, *data):
-    '''
+    """
     Interpolates panda dataframes onto an index, of same index type (e.g. wavelength in microns)
     Parameters
     ----------
     index: 1d array which data is to be interpolated onto
-    data:       Pandas dataframes 
+    data:       Pandas dataframes
     Returns
     -------
     df: Interpolated dataframe
-    '''
-    df = pd.DataFrame({'tmp': index}, index=index)
+    """
+    df = pd.DataFrame({"tmp": index}, index=index)
     for dat in data:
-        dat = dat[~dat.index.duplicated(keep='first')]
-        df = pd.concat([df, dat], axis=1)        
+        dat = dat[~dat.index.duplicated(keep="first")]
+        df = pd.concat([df, dat], axis=1)
     df = df.sort_index()
-    df = df.interpolate(method='index', axis=0).reindex(index)
-    df = df.drop(labels='tmp', axis=1)
+    df = df.interpolate(method="index", axis=0).reindex(index)
+    df = df.drop(labels="tmp", axis=1)
 
     return df
+
 
 def __to_format(jd: float, fmt: str) -> float:
     """
@@ -70,16 +67,17 @@ def __to_format(jd: float, fmt: str) -> float:
     -------
     jd: float
     """
-    if fmt.lower() == 'jd':
+    if fmt.lower() == "jd":
         return jd
-    elif fmt.lower() == 'mjd':
+    elif fmt.lower() == "mjd":
         return jd - 2400000.5
-    elif fmt.lower() == 'rjd':
+    elif fmt.lower() == "rjd":
         return jd - 2400000
     else:
-        raise ValueError('Invalid Format')
+        raise ValueError("Invalid Format")
 
-def to_jd(dt: datetime, fmt: str = 'jd') -> float:
+
+def to_jd(dt: datetime, fmt: str = "jd") -> float:
     """
     Converts a given datetime object to Julian date.
     Algorithm is copied from https://en.wikipedia.org/wiki/Julian_day
@@ -95,15 +93,30 @@ def to_jd(dt: datetime, fmt: str = 'jd') -> float:
     -------
     jd: float
     """
-    a = math.floor((14-dt.month)/12)
+    a = math.floor((14 - dt.month) / 12)
     y = dt.year + 4800 - a
-    m = dt.month + 12*a - 3
+    m = dt.month + 12 * a - 3
 
-    jdn = dt.day + math.floor((153*m + 2)/5) + 365*y + math.floor(y/4) - math.floor(y/100) + math.floor(y/400) - 32045
+    jdn = (
+        dt.day
+        + math.floor((153 * m + 2) / 5)
+        + 365 * y
+        + math.floor(y / 4)
+        - math.floor(y / 100)
+        + math.floor(y / 400)
+        - 32045
+    )
 
-    jd = jdn + (dt.hour - 12) / 24 + dt.minute / 1440 + dt.second / 86400 + dt.microsecond / 86400000000
+    jd = (
+        jdn
+        + (dt.hour - 12) / 24
+        + dt.minute / 1440
+        + dt.second / 86400
+        + dt.microsecond / 86400000000
+    )
 
     return __to_format(jd, fmt)
+
 
 def getLightTravelTimes(target, time_to_correct):
     """
@@ -131,30 +144,34 @@ def getLightTravelTimes(target, time_to_correct):
     """
 
     ltt_bary = time_to_correct.light_travel_time(target)
-    ltt_helio = time_to_correct.light_travel_time(target, 'heliocentric')
+    ltt_helio = time_to_correct.light_travel_time(target, "heliocentric")
     return ltt_bary, ltt_helio
+
 
 def time_conversion(jd, location, target):
     """
     https://github.com/WarwickAstro/time-conversions
     """
 
-    time_inp = Time(jd, format='jd', scale='utc', location=location)
+    time_inp = Time(jd, format="jd", scale="utc", location=location)
 
     ltt_bary, ltt_helio = getLightTravelTimes(target, time_inp)
-    
+
     hjd = (time_inp + ltt_helio).value
     bjd = (time_inp.tdb + ltt_bary).value
-    lst = time_inp.sidereal_time('mean')
-    lstsec = lst.hour*3600
-    ha = Angle(((((lst - target.ra).hour +12) % 24) - 12)*u.hourangle).to_string(unit=u.hourangle, sep=' ') # MH - not zero padded but will do for now
+    lst = time_inp.sidereal_time("mean")
+    lstsec = lst.hour * 3600
+    ha = Angle(((((lst - target.ra).hour + 12) % 24) - 12) * u.hourangle).to_string(
+        unit=u.hourangle, sep=" "
+    )  # MH - not zero padded but will do for now
 
     return hjd, bjd, lstsec, ha
 
-def hdr_times(hdr, fits_config, location, target):
-    dateobs = pd.to_datetime(hdr['DATE-OBS'])
 
-    dateend = dateobs + timedelta(seconds=float(hdr['EXPTIME']))
+def hdr_times(hdr, fits_config, location, target):
+    dateobs = pd.to_datetime(hdr["DATE-OBS"])
+
+    dateend = dateobs + timedelta(seconds=float(hdr["EXPTIME"]))
     jd = to_jd(dateobs)
     jdend = to_jd(dateend)
 
@@ -163,64 +180,78 @@ def hdr_times(hdr, fits_config, location, target):
 
     hjd, bjd, lstsec, ha = time_conversion(jd, location, target)
 
-    for i, row in fits_config[fits_config['fixed'] == False].iterrows():  # noqa: E712
-
-        if row['device_type'] == 'astra':
-            match row['header']:
-                case 'JD-OBS':
-                    hdr[row['header']] = (jd, row['comment'])
-                case 'JD-END':
-                    hdr[row['header']] = (jdend, row['comment'])
-                case 'HJD-OBS':
-                    hdr[row['header']] = (hjd, row['comment'])
-                case 'BJD-OBS':
-                    hdr[row['header']] = (bjd, row['comment']) 
-                case 'MJD-OBS':
-                    hdr[row['header']] = (mjd, row['comment'])
-                case 'MJD-END':
-                    hdr[row['header']] = (mjdend, row['comment']) 
-                case 'DATE-END':
-                    hdr[row['header']] = (dateend.strftime('%Y-%m-%dT%H:%M:%S.%f'), row['comment'])
-                case 'LST':
-                    hdr[row['header']] = (lstsec, row['comment'])
-                case 'HA':
-                    hdr[row['header']] = (ha, row['comment'])
+    for i, row in fits_config[fits_config["fixed"] == False].iterrows():  # noqa: E712
+        if row["device_type"] == "astra":
+            match row["header"]:
+                case "JD-OBS":
+                    hdr[row["header"]] = (jd, row["comment"])
+                case "JD-END":
+                    hdr[row["header"]] = (jdend, row["comment"])
+                case "HJD-OBS":
+                    hdr[row["header"]] = (hjd, row["comment"])
+                case "BJD-OBS":
+                    hdr[row["header"]] = (bjd, row["comment"])
+                case "MJD-OBS":
+                    hdr[row["header"]] = (mjd, row["comment"])
+                case "MJD-END":
+                    hdr[row["header"]] = (mjdend, row["comment"])
+                case "DATE-END":
+                    hdr[row["header"]] = (
+                        dateend.strftime("%Y-%m-%dT%H:%M:%S.%f"),
+                        row["comment"],
+                    )
+                case "LST":
+                    hdr[row["header"]] = (lstsec, row["comment"])
+                case "HA":
+                    hdr[row["header"]] = (ha, row["comment"])
                 case _:
                     pass
-    
-    z = (90 - hdr['ALTITUDE']) * np.pi/180
-    hdr['AIRMASS'] = (1.002432*np.cos(z)**2 + 0.148386*np.cos(z) + 0.0096467) /  (np.cos(z)**3 + 0.149864*np.cos(z)**2 + 0.0102963*np.cos(z) + 0.000303978) # https://doi.org/10.1364/AO.33.001108, https://en.wikipedia.org/wiki/Air_mass_(astronomy)
+
+    z = (90 - hdr["ALTITUDE"]) * np.pi / 180
+    hdr["AIRMASS"] = (1.002432 * np.cos(z) ** 2 + 0.148386 * np.cos(z) + 0.0096467) / (
+        np.cos(z) ** 3 + 0.149864 * np.cos(z) ** 2 + 0.0102963 * np.cos(z) + 0.000303978
+    )  # https://doi.org/10.1364/AO.33.001108, https://en.wikipedia.org/wiki/Air_mass_(astronomy)
+
 
 ## for flat fielding
 def is_sun_rising(obs_location):
     # sun's position now
     obs_time0 = Time.now()
     sun_position0 = get_sun(obs_time0)
-    sun_altaz0 = sun_position0.transform_to(AltAz(obstime=obs_time0, location=obs_location))
+    sun_altaz0 = sun_position0.transform_to(
+        AltAz(obstime=obs_time0, location=obs_location)
+    )
 
     # sun's position in 5 minutes
     obs_time1 = obs_time0 + 5 * u.minute
     sun_position1 = get_sun(obs_time1)
-    sun_altaz1 = sun_position1.transform_to(AltAz(obstime=obs_time1, location=obs_location))
+    sun_altaz1 = sun_position1.transform_to(
+        AltAz(obstime=obs_time1, location=obs_location)
+    )
 
     # determine if sun is moving up or down by looking at gradient
-    sun_altaz_grad = (sun_altaz1.alt.degree - sun_altaz0.alt.degree) / (obs_time1 - obs_time0).sec
+    sun_altaz_grad = (sun_altaz1.alt.degree - sun_altaz0.alt.degree) / (
+        obs_time1 - obs_time0
+    ).sec
 
     sun_rising = None
     if sun_altaz_grad > 0:
         sun_rising = True
     else:
         sun_rising = False
-    
+
     flat_ready = False
-    
+
     if sun_altaz0.alt.deg > -12 and sun_altaz0.alt.deg < -1:
         flat_ready = True
 
     return sun_rising, flat_ready, sun_altaz0
 
+
 ## pointing
-def db_query(db: str, min_dec: float, max_dec: float, min_ra: float, max_ra: float) -> pd.DataFrame:
+def db_query(
+    db: str, min_dec: float, max_dec: float, min_ra: float, max_ra: float
+) -> pd.DataFrame:
     """
     Queries a federated database for astronomical data within a specified range of declination and right ascension.
 
@@ -253,14 +284,15 @@ def db_query(db: str, min_dec: float, max_dec: float, min_ra: float, max_ra: flo
     # Execute the federated query across the relevant shard(s).
     df_total = pd.DataFrame()
     for shard_id in relevant_shard_ids:
-        shard_table_name = f'{shard_id}'
-        q = f'SELECT * FROM `{shard_table_name}` WHERE dec BETWEEN {min_dec} AND {max_dec} AND ra BETWEEN {min_ra} AND {max_ra}'
+        shard_table_name = f"{shard_id}"
+        q = f"SELECT * FROM `{shard_table_name}` WHERE dec BETWEEN {min_dec} AND {max_dec} AND ra BETWEEN {min_ra} AND {max_ra}"
         df = pd.read_sql_query(q, conn)
         df_total = pd.concat([df, df_total], axis=0)
 
     # Close the conn and return the results.
     conn.close()
     return df_total
+
 
 def gaia_db_query(
     center: Union[Tuple[float, float], SkyCoord],
@@ -311,7 +343,7 @@ def gaia_db_query(
         dec = center.dec.deg
     else:
         ra, dec = center
-    
+
     if not isinstance(fov, u.Quantity):
         fov = fov * u.deg
 
@@ -321,49 +353,55 @@ def gaia_db_query(
         ra_fov = fov[0].to(u.deg).value
         dec_fov = fov[1].to(u.deg).value
 
-    min_dec = dec - dec_fov/2
-    max_dec = dec + dec_fov/2
-    min_ra = ra - ra_fov/2
-    max_ra = ra + ra_fov/2
+    min_dec = dec - dec_fov / 2
+    max_dec = dec + dec_fov / 2
+    min_ra = ra - ra_fov / 2
+    max_ra = ra + ra_fov / 2
 
-    table = db_query('pointing.db', min_dec, max_dec, min_ra, max_ra)
+    table = db_query("pointing.db", min_dec, max_dec, min_ra, max_ra)
     if tmass:
-        table = table.sort_values(by=['j_m']).reset_index(drop=True)
+        table = table.sort_values(by=["j_m"]).reset_index(drop=True)
     else:
-        table = table.sort_values(by=['phot_g_mean_mag']).reset_index(drop=True)
+        table = table.sort_values(by=["phot_g_mean_mag"]).reset_index(drop=True)
 
-    table.replace('', np.nan, inplace=True)
+    table.replace("", np.nan, inplace=True)
     table.dropna(inplace=True)
-    
+
     # limit number of stars
     table = table[0:limit]
 
     # add proper motion to ra and dec
     if dateobs is not None:
         # calculate fractional year
-        dateobs = dateobs.year + (dateobs.timetuple().tm_yday - 1) / 365.25 # type: ignore
-        
-        years = dateobs - 2015.5 # type: ignore
+        dateobs = dateobs.year + (dateobs.timetuple().tm_yday - 1) / 365.25  # type: ignore
+
+        years = dateobs - 2015.5  # type: ignore
         table["ra"] += years * table["pmra"] / 1000 / 3600
-        table["dec"] += years * table["pmdec"] / 1000 / 3600    
-        
+        table["dec"] += years * table["pmdec"] / 1000 / 3600
+
     return np.array([table["ra"].values, table["dec"].values]).T
 
-def point_correction(filepath, ra, dec):
 
+def point_correction(filepath, ra, dec):
     # open image
     with fits.open(filepath) as hdu:
-        header = hdu[0].header 
+        header = hdu[0].header
         data = hdu[0].data
 
     # clean image
     sigma_clip = SigmaClip(sigma=3.0)
     bkg_estimator = MedianBackground()
 
-    bkg = Background2D(data, (32, 32), filter_size=(3, 3), sigma_clip=sigma_clip, bkg_estimator=bkg_estimator)
+    bkg = Background2D(
+        data,
+        (32, 32),
+        filter_size=(3, 3),
+        sigma_clip=sigma_clip,
+        bkg_estimator=bkg_estimator,
+    )
     bkg_clean = data - bkg.background
 
-    med_clean = ndimage.median_filter(bkg_clean, size=5, mode='mirror')
+    med_clean = ndimage.median_filter(bkg_clean, size=5, mode="mirror")
     band_corr = np.median(med_clean, axis=1).reshape(-1, 1)
     image_clean = med_clean - band_corr
 
@@ -375,14 +413,16 @@ def point_correction(filepath, ra, dec):
 
     # image fov
     shape = image_clean.shape
-    plate_scale = np.arctan((header['XPIXSZ']*1e-6)/(header['FOCALLEN']*1e-3))*(180/np.pi) # deg/pixel
-    fovx = (1/np.abs(np.cos(center.dec.rad)))*shape[0] * plate_scale
+    plate_scale = np.arctan((header["XPIXSZ"] * 1e-6) / (header["FOCALLEN"] * 1e-3)) * (
+        180 / np.pi
+    )  # deg/pixel
+    fovx = (1 / np.abs(np.cos(center.dec.rad))) * shape[0] * plate_scale
     fovy = shape[1] * plate_scale
 
     # detect stars in the image
     stars = twirl.find_peaks(image_clean, threshold=5)
 
-    gaia_limit = len(stars)*2
+    gaia_limit = len(stars) * 2
     star_limit = len(stars)
     if len(stars) < 4:
         raise Exception("Not enough stars detected for plate solve")
@@ -391,14 +431,20 @@ def point_correction(filepath, ra, dec):
         star_limit = 12
 
     stars = stars[0:star_limit]
-    
+
     # get gaia stars in the field of view
-    dateobs = pd.to_datetime(header['DATE-OBS'])
-    gaias = gaia_db_query(center, (fovx, fovy), tmass=True, dateobs=dateobs)[0:gaia_limit]
+    dateobs = pd.to_datetime(header["DATE-OBS"])
+    gaias = gaia_db_query(center, (fovx, fovy), tmass=True, dateobs=dateobs)[
+        0:gaia_limit
+    ]
 
     wcs = twirl.compute_wcs(stars, gaias)
-    real_center = utils.pixel_to_skycoord(image_clean.shape[1]/2,image_clean.shape[0]/2, wcs)
-    offset = np.array([real_center.ra.deg - center.ra.deg, real_center.dec.deg - center.dec.deg])
+    real_center = utils.pixel_to_skycoord(
+        image_clean.shape[1] / 2, image_clean.shape[0] / 2, wcs
+    )
+    offset = np.array(
+        [real_center.ra.deg - center.ra.deg, real_center.dec.deg - center.dec.deg]
+    )
 
     angular_separation = center.separation(real_center)
 
@@ -409,14 +455,13 @@ def point_correction(filepath, ra, dec):
     # import matplotlib
     # matplotlib.use('agg')
     # fig = plt.figure(figsize=(8,8))
-        
 
     # med = np.median(image_clean)
     # std = np.std(image_clean)
     # plt.imshow(image_clean, cmap="Greys_r", vmax=3*std + med, vmin=med - 1*std)
 
     # plt.scatter(*stars.T, s=80, facecolors='none', edgecolors='tab:blue')
-                
+
     # plt.scatter(*gaias_pixel.T, s=120, facecolors='none', edgecolors='r')
 
     # plt.plot(image_clean.shape[1]/2,image_clean.shape[0]/2, 'o')
@@ -426,25 +471,25 @@ def point_correction(filepath, ra, dec):
     # fig.tight_layout()
     # fig.savefig('pointing.jpg', dpi=300, format='jpg')
 
-
     #  if offset is too large, consider plate solve failed
-    if abs(angular_separation.deg) > max(plate_scale*np.array(shape)):
+    if abs(angular_separation.deg) > max(plate_scale * np.array(shape)):
         raise Exception("Plate solve failed, offset larger than field of view")
 
     # iterate through gaia stars and find the closest star in the image
     count = 0
     for x, y in gaias_pixel:
         for i, j in stars:
-            # if the distance between the gaia star and the star 
+            # if the distance between the gaia star and the star
             # in the image is less than 10 pixels, count it as a match
-            if np.sqrt((x-i)**2 + (y-j)**2) < 10:
+            if np.sqrt((x - i) ** 2 + (y - j) ** 2) < 10:
                 count += 1
 
     # if more than 4 stars match, consider plate solve successful
     if count < 4:
         raise Exception("Plate solve failed, not enough stars matched")
 
-    return offset[0], offset[1], wcs, angular_separation 
+    return offset[0], offset[1], wcs, angular_separation
+
 
 ## SPECULOOS EDIT
 def check_astelos_error(telescope):
@@ -452,32 +497,66 @@ def check_astelos_error(telescope):
     Check astelos telescope status list property
     """
 
-    allowed_err = [	["ERR_DeviceError","axis (0) unexpectedly changed to powered on state","2","DOME[0]"],
-                            ["ERR_DeviceError","axis (0) unexpectedly changed to powered on state","2","DOME[1]"],
-                            ["ERR_DeviceError","axis (1) unexpectedly changed to powered on state","2","DOME[0]"],
-                            ["ERR_DeviceError","axis (1) unexpectedly changed to powered on state","2","DOME[1]"],
-                            ["ERR_DeviceError","axis #0\\| amplifier fault #07H\\| safe torque-off circuit fault","2","HA"],
-                            ["ERR_RunDevError","Working pressure suddenly lost","2","HA"],
-                            ["ERR_DeviceError","axis #0\\| amplifier fault #07H\\| safe torque-off circuit fault","2","DEC"],
-                            ["ERR_RunDevError","Working pressure suddenly lost","2","DEC"],
-                            ["ERR_DeviceWarn", "Malformed telegram from GPS", "4", "LOCAL"] ]
+    allowed_err = [
+        [
+            "ERR_DeviceError",
+            "axis (0) unexpectedly changed to powered on state",
+            "2",
+            "DOME[0]",
+        ],
+        [
+            "ERR_DeviceError",
+            "axis (0) unexpectedly changed to powered on state",
+            "2",
+            "DOME[1]",
+        ],
+        [
+            "ERR_DeviceError",
+            "axis (1) unexpectedly changed to powered on state",
+            "2",
+            "DOME[0]",
+        ],
+        [
+            "ERR_DeviceError",
+            "axis (1) unexpectedly changed to powered on state",
+            "2",
+            "DOME[1]",
+        ],
+        [
+            "ERR_DeviceError",
+            "axis #0\\| amplifier fault #07H\\| safe torque-off circuit fault",
+            "2",
+            "HA",
+        ],
+        ["ERR_RunDevError", "Working pressure suddenly lost", "2", "HA"],
+        [
+            "ERR_DeviceError",
+            "axis #0\\| amplifier fault #07H\\| safe torque-off circuit fault",
+            "2",
+            "DEC",
+        ],
+        ["ERR_RunDevError", "Working pressure suddenly lost", "2", "DEC"],
+        ["ERR_DeviceWarn", "Malformed telegram from GPS", "4", "LOCAL"],
+    ]
 
-    df_allowed = pd.DataFrame(allowed_err, columns = ['error', 'detail', 'level', 'component'])
-    df_list = pd.DataFrame(columns = ['error', 'detail', 'level', 'component'])
+    df_allowed = pd.DataFrame(
+        allowed_err, columns=["error", "detail", "level", "component"]
+    )
+    df_list = pd.DataFrame(columns=["error", "detail", "level", "component"])
 
-    messages = telescope.get('CommandString', Command = "TELESCOPE.STATUS.LIST", Raw = True)
+    messages = telescope.get("CommandString", Command="TELESCOPE.STATUS.LIST", Raw=True)
     print(messages)
     # structure = "<group>|<level>[:<component>|<level>[;<component>...]][:<error>|<detail>|<level>|<component>[;<error>...]][,<group>...]"
 
-    for message in messages.split(','):
-        parts = message.split(':')
+    for message in messages.split(","):
+        parts = message.split(":")
 
         # only look parts after "<group>|<level>"
         for part in parts[1:]:
-            elements = part.split(';')
+            elements = part.split(";")
 
             for element in elements:
-                error_detail = element.split('|')
+                error_detail = element.split("|")
 
                 if len(error_detail) == 4:
                     if not error_detail[1].isdigit():
@@ -486,17 +565,31 @@ def check_astelos_error(telescope):
                         error_level = error_detail[2]
                         component = error_detail[3]
 
-                        df_list = pd.concat([df_list, pd.DataFrame({'error': [error], 'detail': [detail], 'level': [error_level], 'component': [component]})], ignore_index=True)
+                        df_list = pd.concat(
+                            [
+                                df_list,
+                                pd.DataFrame(
+                                    {
+                                        "error": [error],
+                                        "detail": [detail],
+                                        "level": [error_level],
+                                        "component": [component],
+                                    }
+                                ),
+                            ],
+                            ignore_index=True,
+                        )
 
     # check all rows of df_list are in df_allowed
-    compare_df = pd.merge(df_list, df_allowed, how='left', indicator='exists')
-    exists = compare_df['exists'] == 'both'
+    compare_df = pd.merge(df_list, df_allowed, how="left", indicator="exists")
+    exists = compare_df["exists"] == "both"
 
     # if all of exists is True
     if exists.all():
         return True, df_list, messages
     else:
         return False, df_list, messages
+
 
 def ack_astelos_error(telescope, valid, all_errors, messages):
     """
@@ -507,10 +600,13 @@ def ack_astelos_error(telescope, valid, all_errors, messages):
     start_time = time.time()
 
     while valid and len(all_errors) > 0:
-
         # clear errors
         for i, row in all_errors.iterrows():
-            telescope.get('CommandBlind', Command = f"TELESCOPE.STATUS.CLEAR_ERROR={row['level']}", Raw = True)
+            telescope.get(
+                "CommandBlind",
+                Command=f"TELESCOPE.STATUS.CLEAR_ERROR={row['level']}",
+                Raw=True,
+            )
             time.sleep(2)
 
         # telescope.get('CommandBlind', Command = "TELESCOPE.STATUS.CLEAR_ERROR=2", Raw = True)
@@ -520,11 +616,10 @@ def ack_astelos_error(telescope, valid, all_errors, messages):
         # check telescope status
         valid, all_errors, messages = check_astelos_error(telescope)
 
-        if time.time() - start_time > 120: # 2 minutes hardcoded limit
-            raise TimeoutError('Astelos error acknowledgement timed out')
-        
+        if time.time() - start_time > 120:  # 2 minutes hardcoded limit
+            raise TimeoutError("Astelos error acknowledgement timed out")
 
     if not valid:
         return False, messages
-    
+
     return True, messages

@@ -10,35 +10,33 @@ import os
 import sys
 
 # add path to source code
-sys.path.insert(0, os.path.abspath('../code/src/'))
+sys.path.insert(0, os.path.abspath("../code/src/"))
 
-project = 'Astra'
-copyright = '2023, PPP'
-author = 'PPP'
-release = '0.0.1'
+project = "Astra"
+copyright = "2023, PPP"
+author = "PPP"
+release = "0.0.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
 ]
 
 
-templates_path = ['_templates']
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
-
+templates_path = ["_templates"]
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_book_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_book_theme"
+html_static_path = ["_static"]
 html_context = {
-   # ...
-   "default_mode": "light"
+    # ...
+    "default_mode": "light"
 }
-

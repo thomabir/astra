@@ -1,10 +1,10 @@
 import sqlite3
 
 ## ADD YOUR VALUES HERE
-path_to_db = '../log/SaintEx.db'
+path_to_db = "../log/SaintEx.db"
 
-field = 'target1'
-filter_name = 'I+z'
+field = "target1"
+filter_name = "I+z"
 
 
 # Connect to the SQLite database
