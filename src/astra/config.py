@@ -65,7 +65,7 @@ class Config:
         for folder in names:
             if not (self.folder_assets / folder).exists():
                 (self.folder_assets / folder).mkdir()
-                print(f"Folder {self.folder_assets / folder} created")
+                print(f"Created folder {self.folder_assets / folder}")
 
     def check_config_file(self, exist_ok=True):
         """Check if the config file exists, if not create it.
@@ -94,7 +94,7 @@ class Config:
 
                 with open(self.file_config, "w") as file:
                     yaml.dump(config, file)
-                    print(f"Config file created at {self.file_config}")
+                    print(f"Created config file {self.file_config}")
 
     def load_config(self):
         """Load the config file."""
