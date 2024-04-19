@@ -58,3 +58,8 @@ source = "vcs"
 [tool.black]
 target-version = ["py39"]
 line-length = 88
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = ["tests"]
