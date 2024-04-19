@@ -1,5 +1,7 @@
 # Configuration
 
+## Astra `config.yaml` file
+
 Astra is configured through the `yaml` configuration file `~/.astra/config.yaml` containing the following keys:
 
 | key | value |
@@ -17,3 +19,4 @@ assets
 ```
 
 Within Python, the configuration can be accessed through the `astra.CONFIG` object.
+

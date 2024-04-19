@@ -16,6 +16,7 @@ Astra is an open-source observatory control software designed for automating and
 
    installation
    master_config
+   observatory_config
    operations
    modules
    development
