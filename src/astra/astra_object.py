@@ -13,12 +13,10 @@ import numpy as np
 import pandas as pd
 import psutil
 import yaml
-
 # from ascom_device_process import AscomDevice
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.io import fits
 from astropy.time import Time
-
 # https://github.com/dashawn888/sqlite3worker
 from sqlite3worker import Sqlite3Worker
 
@@ -157,7 +155,7 @@ class Astra:
 
         self.observatory = self.read_yaml(config_filename)
 
-        self.schedule_path = CONFIG.folder_observatory / f"{self.observatory_name}.csv"
+        self.schedule_path = CONFIG.folder_schedule / f"{self.observatory_name}.csv"
 
         self.schedule_mtime = os.path.getmtime(self.schedule_path)
         self.schedule = None
@@ -3127,7 +3125,7 @@ class Astra:
                             action_value[row["header"].lower()],
                             row["comment"],
                         )
-                elif row["header"] == "EXPTIME" | "IMAGETYP":
+                elif row["header"] in ["EXPTIME", "IMAGETYP"]:
                     hdr[row["header"]] = (None, row["comment"])
                 elif row["header"] == "ASTRA":
                     hdr[row["header"]] = (ASTRA_VER, row["comment"])

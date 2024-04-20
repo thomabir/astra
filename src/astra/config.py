@@ -48,6 +48,11 @@ class Config:
         """Folder where image files are stored."""
         return self.folder_assets / "images"
 
+    @property
+    def file_log(self):
+        """Log file path."""
+        return self.folder_log / "astra.log"
+
     def check_assets_folders(self, *names, exist_ok=True):
         """Check if the assets folders exist, if not create them, i.e.
         telescope, schedule, log. Base folder is defined in the config file as
@@ -66,6 +71,10 @@ class Config:
             if not (self.folder_assets / folder).exists():
                 (self.folder_assets / folder).mkdir()
                 print(f"Created folder {self.folder_assets / folder}")
+
+        # write onto log file (create if not exist)
+        with open(self.file_log, "a") as file:
+            file.write("")
 
     def check_config_file(self, exist_ok=True):
         """Check if the config file exists, if not create it.

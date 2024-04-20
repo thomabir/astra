@@ -7,6 +7,7 @@ import time
 from contextlib import asynccontextmanager
 from glob import glob
 from io import BytesIO
+from pathlib import Path
 
 import httpx
 import matplotlib.pyplot as plt
@@ -22,18 +23,19 @@ from astra import CONFIG
 from astra.astra_object import Astra
 
 # change base directory to code/src
-os.chdir(os.path.dirname(os.path.realpath(__file__)))
+
+FRONTEND_PATH = Path(__file__).parent.parent.parent / "frontend"
 
 logging.basicConfig(
     format="%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
-    filename="../log/astra.log",
+    filename=CONFIG.file_log,
     level=logging.INFO,
 )
 logging.Formatter.converter = time.gmtime
 
 
-frontend = Jinja2Templates(directory="frontend")
+frontend = Jinja2Templates(directory=FRONTEND_PATH)
 observatories = {}
 webcamfeeds = {}
 fws = {}
@@ -50,7 +52,7 @@ def load_observatories():
     global fws
     global debug
 
-    config_files = glob(os.path.join(CONFIG.folder_observatory, "*.yml"))
+    config_files = glob(str(CONFIG.folder_observatory / "*.yml"))
 
     for config_filename in config_files:
         obs = Astra(config_filename, debug, truncate_schedule, speculoos=True)
@@ -71,7 +73,7 @@ def load_observatories():
 
 
 def observatory_db(name):
-    db = sqlite3.connect(CONFIG.folder_log / name + ".db")
+    db = sqlite3.connect(CONFIG.folder_log / f"{name}.db")
     return db
 
 
@@ -105,16 +107,17 @@ def convert_fits_to_jpg(fits_file, observatory):
     vmin, vmax = interval.get_limits(image_data)
 
     # delete previous jpgs
-    old_img_path = os.path.join("frontend", f"*{observatory}*.jpg")
+    old_img_path = str(FRONTEND_PATH / f"*{observatory}*.jpg")
     for file in glob(old_img_path):
         os.remove(file)
 
     # Save the jpg image
     filename = os.path.splitext(os.path.basename(fits_file))[0] + ".jpg"
-    filepath = os.path.join("frontend", filename)
+    filepath = str(FRONTEND_PATH / filename)
     plt.imsave(filepath, image_data, format="jpg", cmap="gray", vmin=vmin, vmax=vmax)
 
-    return filepath, headers
+    # TODO: don't like this trick, but it works for now
+    return str(Path("frontend") / filename), headers
 
 
 @asynccontextmanager
@@ -143,17 +146,17 @@ async def root(request: Request):
 
 @app.get("/favicon.svg", include_in_schema=False)
 async def favicon():
-    return FileResponse(os.path.join("frontend", "favicon.svg"))
+    return FileResponse(str(FRONTEND_PATH / "favicon.svg"))
 
 
 @app.get("/js/{file}", include_in_schema=False)
 async def js(file: str):
-    return FileResponse(os.path.join("frontend", "js", file))
+    return FileResponse(str(FRONTEND_PATH / "js" / file))
 
 
 @app.get("/frontend/{image}", include_in_schema=False)
 async def lastest_image(image: str):
-    return FileResponse(os.path.join("frontend", image))
+    return FileResponse(str(FRONTEND_PATH / image))
 
 
 @app.get("/video/{observatory}/{filename:path}", include_in_schema=False)

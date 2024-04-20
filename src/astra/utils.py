@@ -18,16 +18,14 @@ from astropy.wcs import utils
 from photutils.background import Background2D, MedianBackground
 from scipy import ndimage
 
+from astra import CONFIG
+
 
 ## for new images
 def create_image_dir():
-    folder = (datetime.utcnow() - timedelta(days=0.5)).strftime("%Y%m%d")
-    mypath = f"../images/{folder}"
-    try:
-        if not os.path.isdir(mypath):
-            os.makedirs(mypath)
-    except OSError as e:
-        pass
+    date_str = (datetime.now(datetime.UTC) - timedelta(days=0.5)).strftime("%Y%m%d")
+    folder = CONFIG.folder_images / date_str
+    folder.mkdir(exist_ok=True)
     return folder
 
 
