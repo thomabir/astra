@@ -2,7 +2,7 @@ import math
 import os
 import sqlite3
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from typing import Optional, Tuple, Union
 
 import astropy.units as u
@@ -23,7 +23,7 @@ from astra import CONFIG
 
 ## for new images
 def create_image_dir():
-    date_str = (datetime.now(datetime.UTC) - timedelta(days=0.5)).strftime("%Y%m%d")
+    date_str = (datetime.now(UTC) - timedelta(days=0.5)).strftime("%Y%m%d")
     folder = CONFIG.folder_images / date_str
     folder.mkdir(exist_ok=True)
     return folder
