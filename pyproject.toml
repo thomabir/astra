@@ -26,9 +26,9 @@ dependencies = [
     "httpx",
     "matplotlib",
     "pandas",
-    "uvicorn",
     "fastapi",
     "pyyaml",
+    "uvicorn[standard]",
 ]
 
 [project.optional-dependencies]
