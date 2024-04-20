@@ -32,7 +32,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["ruff", "black", "pytest"]
+dev = ["ruff", "black==24.3.0", "pytest"]
 test = ["pytest"]
 docs = [
     "matplotlib",
@@ -40,6 +40,7 @@ docs = [
     "sphinx-book-theme",
     "sphinx-design",
     "ipywidgets",
+    "sphinx-copybutton",
 ]
 
 [project.urls]
