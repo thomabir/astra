@@ -33,15 +33,8 @@ def datadir(tmpdir, request):
 def test_yaml_to_csv(datadir):
     csv_df = schedule.read_schedule(datadir.join("full_schedule.csv"))
     yaml_df = schedule.read_schedule(
-        datadir.join("full_schedule.yaml"), observatory="Callisto"
+        datadir.join("full_schedule.yaml"), observatory_name="Callisto"
     )
-
-    # just for comparison, because the current astra csv_df["action_value"]
-    # is not well formatted
-    for i, row in csv_df.iterrows():
-        csv_df.at[i, "action_value"] = json.dumps(
-            eval(row["action_value"].replace("'", '"'))
-        )
 
     for i in range(len(yaml_df)):
         assert csv_df.iloc[i].to_dict() == yaml_df.iloc[i].to_dict()
