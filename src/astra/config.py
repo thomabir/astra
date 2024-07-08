@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -21,6 +22,7 @@ class Config:
     def __init__(self):
         self.folder_config.mkdir(exist_ok=True)
         self.config = self.load_config()
+        self.str_time_format = "%Y-%m-%d %H:%M:%S"
         self.check_assets_folders("log", "schedule", "observatory", "temp", "images")
 
     @property
@@ -111,3 +113,7 @@ class Config:
 
         with open(self.file_config, "r") as file:
             return yaml.safe_load(file)
+
+    def as_datetime(self, string):
+        """Convert a string to a datetime object."""
+        return datetime.strptime(string, self.str_time_format)
