@@ -6,7 +6,7 @@ import yaml
 
 class Config:
     """
-    Configuration class for astra. It loads the config file and creates the
+    Configuration class for astra. It loads the astra_config file and creates the
     assets folder if they do not exist.
     """
 

@@ -1,3 +1,3 @@
-from astra.config import Config
+from astra.astra_config import Config
 
 CONFIG = Config()

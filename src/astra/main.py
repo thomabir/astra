@@ -3,7 +3,6 @@ import datetime
 import logging
 import os
 import sqlite3
-import time
 from contextlib import asynccontextmanager
 from datetime import UTC
 from glob import glob
@@ -36,13 +35,13 @@ USEFUL_HEADERS = None
 TRUNCATE_SCHEDULE = False
 
 
-logging.basicConfig(
-    format="%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    filename=CONFIG.file_log,
-    level=logging.INFO,
-)
-logging.Formatter.converter = time.gmtime
+# logging.basicConfig(
+#     format="%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s",
+#     datefmt="%Y-%m-%d %H:%M:%S",
+#     filename=CONFIG.file_log,
+#     level=logging.INFO,
+# )
+# logging.Formatter.converter = time.gmtime
 
 
 def load_observatories():
@@ -51,7 +50,7 @@ def load_observatories():
     global FWS
     global DEBUG
 
-    config_files = glob(str(CONFIG.folder_observatory / "*.yml"))
+    config_files = glob(str(CONFIG.folder_observatory / "*.yaml"))
 
     for config_filename in config_files:
         obs = Observatory(config_filename, DEBUG, TRUNCATE_SCHEDULE, speculoos=True)
@@ -287,15 +286,18 @@ async def connect(observatory: str):
 @app.get("/api/schedule/{observatory}")
 async def schedule(observatory: str):
     obs = OBSERVATORIES[observatory]
-    schedule = obs.schedule
+    if obs.schedule_mtime != 0:
+        schedule = obs.schedule
 
-    schedule["start_HHMMSS"] = schedule["start_time"].apply(format_time)
-    schedule["end_HHMMSS"] = schedule["end_time"].apply(format_time)
+        schedule["start_HHMMSS"] = schedule["start_time"].apply(format_time)
+        schedule["end_HHMMSS"] = schedule["end_time"].apply(format_time)
 
-    # replace NaN with None
-    schedule = schedule.where(pd.notnull(schedule), None)
+        # replace NaN with None
+        schedule = schedule.where(pd.notnull(schedule), None)
 
-    return schedule.to_dict(orient="records")
+        return schedule.to_dict(orient="records")
+    else:
+        return []
 
 
 @app.get("/api/db/polling/{observatory}/{device_type}")
