@@ -1,10 +1,38 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import numpy as np
+import pandas as pd
 from alpaca.camera import ImageMetadata
 from astropy.io import fits
 
 from astra import CONFIG
+
+
+def create_image_dir(
+    schedule_start_time: datetime = datetime.now(UTC),
+    site_long: float = 0,
+    user_specified_dir: str = None,
+) -> Path:
+    """
+    Create a directory to store images.
+
+    This function creates a directory to store images. If a user-specified directory is provided, it is used.
+    Otherwise, the directory is created in the 'images' folder with a name based on the schedule's beginning
+    date (~shifted to local time using site's longitude).
+
+    """
+
+    if user_specified_dir:
+        folder = Path(user_specified_dir)
+        folder.mkdir(exist_ok=True)
+    else:
+        date_str = (schedule_start_time + timedelta(hours=site_long / 15)).strftime(
+            "%Y%m%d"
+        )
+        folder = CONFIG.folder_images / date_str
+        folder.mkdir(exist_ok=True)
+    return folder
 
 
 def img_transform(img: np.array, maxadu: int, imginfo: ImageMetadata) -> np.array:

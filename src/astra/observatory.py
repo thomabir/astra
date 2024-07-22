@@ -20,10 +20,10 @@ from astropy.time import Time
 # https://github.com/dashawn888/sqlite3worker
 from sqlite3worker import Sqlite3Worker
 
-from astra import CONFIG, utils
+from astra import ASTRA_VER, CONFIG, utils
 from astra.alpaca_device_process import AlpacaDevice
 from astra.guiding import Guider
-from astra.image_handler import save_image
+from astra.image_handler import create_image_dir, save_image
 from astra.logging_handler import LoggingHandler
 from astra.schedule import process_schedule
 
@@ -1455,8 +1455,7 @@ class Observatory:
             f"Running pre_sequence for {row['device_name']} {row['action_type']} {row['action_value']}"
         )
 
-        action_value = eval(row["action_value"])  # TODO: put part of schedule check
-        folder = utils.create_image_dir()
+        action_value: dict = eval(row["action_value"])
 
         # prepare observatory for sequence
         self.setup_observatory(paired_devices, action_value)
@@ -1464,10 +1463,17 @@ class Observatory:
         # write base header
         hdr = self.base_header(paired_devices, action_value)
 
+        # create image directory
+        folder = create_image_dir(
+            self.schedule.iloc[0]["start_time"],
+            hdr.get("LONG-OBS"),
+            action_value.get("dir"),
+        )
+
         if "object" == row["action_type"]:
             hdr["IMAGETYP"] = "Light Frame"
         elif "flats" == row["action_type"]:
-            hdr["IMAGETYP"] = "FLAT"
+            hdr["IMAGETYP"] = "FLAT"  # TODO: change to Flat Frame?
 
         self.logger.debug(
             f"Finished pre_sequence for {row['device_name']} {row['action_type']} {row['action_value']}"

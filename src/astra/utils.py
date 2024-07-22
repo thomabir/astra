@@ -1,5 +1,4 @@
 import math
-import os
 import sqlite3
 import time
 from datetime import UTC, datetime, timedelta
@@ -17,16 +16,6 @@ from astropy.units import Quantity
 from astropy.wcs import utils
 from photutils.background import Background2D, MedianBackground
 from scipy import ndimage
-
-from astra import CONFIG
-
-
-## for new images
-def create_image_dir():
-    date_str = (datetime.now(UTC) - timedelta(days=0.5)).strftime("%Y%m%d")
-    folder = CONFIG.folder_images / date_str
-    folder.mkdir(exist_ok=True)
-    return folder
 
 
 ## for final fits header
