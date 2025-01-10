@@ -794,16 +794,6 @@ class Observatory:
 
             # check current weather or history?
 
-            # only run if observatory closed?
-            # if "opening_limits" in self.config["ObservingConditions"][0]:
-            #     opening_limits = self.config["ObservingConditions"][0]["opening_limits"]
-
-            #     for parameter in opening_limits:
-            #         limits = opening_limits[parameter]
-            #         for limit in limits:
-
-            #             ...
-
             if "closing_limits" in self.config["ObservingConditions"][0]:
                 closing_limits = self.config["ObservingConditions"][0]["closing_limits"]
 

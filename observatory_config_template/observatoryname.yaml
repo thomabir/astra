@@ -77,16 +77,6 @@ ObservingConditions:
         - min: -999
           max: -20
           max_safe_duration: 150
-    opening_limits:
-      Humidity:
-        min: 0
-        max: 65
-      WindSpeed:
-        min: 0
-        max: 8
-      SkyTemperature:
-        min: -999
-        max: -35
 SafetyMonitor:
   - device_name: safety_observatoryname
     ip: localhost
