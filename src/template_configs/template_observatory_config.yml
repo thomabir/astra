@@ -3,7 +3,7 @@ Telescope:
     ip: localhost
     device_number: 0
     pointing_threshold: 0.06 # arcmins
-    guider:
+    guider: # set by the user using src/astra/scripts/calibrate_guiding.py
       PIX2TIME:
         "+x": 69.32860207831231
         "-x": 69.05795081331794
@@ -20,7 +20,7 @@ Telescope:
         "y": { "p": 0.50, "i": 0.02, "d": 0.0 }
         "set_x": 0.0
         "set_y": 0.0
-      WAIT_TIME: 10
+      WAIT_TIME: 10 # change to double exposure time?
 Focuser:
   - device_name: focuser_observatoryname
     ip: localhost
