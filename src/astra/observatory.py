@@ -226,7 +226,7 @@ class Observatory:
                 )
                 df.to_csv(
                     os.path.join(
-                        CONFIG.folder_log,
+                        CONFIG.paths.folder_log,
                         "archive",
                         f"{self.name}_{table}_{dt_str}.csv",
                     ),

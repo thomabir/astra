@@ -124,28 +124,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.get("/{path:path}", include_in_schema=False)
-async def serve_files(request: Request, path: str = ""):
-    if path == "":
-        return FRONTEND.TemplateResponse(
-            "index.html.j2",
-            {
-                "request": request,
-                "observatories": list(OBSERVATORIES.keys()),
-                "webcamfeeds": WEBCAMFEEDS,
-            },
-            request=request,
-        )
-    elif path == "favicon.svg":
-        return FileResponse(str(FRONTEND_PATH / "favicon.svg"))
-    elif path.startswith("js/"):
-        return FileResponse(str(FRONTEND_PATH / path))
-    elif path.startswith("frontend/"):
-        return FileResponse(str(FRONTEND_PATH / path[len("frontend/") :]))
-    else:
-        return HTMLResponse(status_code=404, content="Not Found")
-
-
 @app.get("/video/{observatory}/{filename:path}", include_in_schema=False)
 async def get_video(request: Request, observatory, filename: str = None):
     headers = request.headers
@@ -803,6 +781,28 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
             socket = False
 
 
+@app.get("/{path:path}", include_in_schema=False)
+async def serve_files(request: Request, path: str = ""):
+    if path == "":
+        return FRONTEND.TemplateResponse(
+            "index.html.j2",
+            {
+                "request": request,
+                "observatories": list(OBSERVATORIES.keys()),
+                "webcamfeeds": WEBCAMFEEDS,
+            },
+            request=request,
+        )
+    elif path == "favicon.svg":
+        return FileResponse(str(FRONTEND_PATH / "favicon.svg"))
+    elif path.startswith("js/"):
+        return FileResponse(str(FRONTEND_PATH / path))
+    elif path.startswith("frontend/"):
+        return FileResponse(str(FRONTEND_PATH / path[len("frontend/") :]))
+    else:
+        return HTMLResponse(status_code=404, content="Not Found")
+
+
 if __name__ == "__main__":
     import argparse
 
@@ -816,7 +816,7 @@ if __name__ == "__main__":
     logging.basicConfig(
         format="%(levelname)s,%(asctime)s.%(msecs)03d,%(process)d,%(name)s,(%(filename)s:%(lineno)d),%(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
-        filename=CONFIG.file_log,
+        filename=CONFIG.paths.file_log,
         level=logging.DEBUG,
     )
     logging.Formatter.converter = time.gmtime
