@@ -798,31 +798,31 @@ class Observatory:
                     for limit in limits:
 
                         max_safe_duration = limit["max_safe_duration"]
-                        min_limit = limit.get("min", None)
-                        max_limit = limit.get("max", None)
+                        lower_limit = limit.get("lower", None)
+                        upper_limit = limit.get("upper", None)
 
-                        if min_limit is not None and max_limit is not None:
+                        if lower_limit is not None and upper_limit is not None:
                             q = f"""
                             SELECT COUNT(*), MAX(datetime) FROM polling 
                             WHERE device_type = 'ObservingConditions' 
                             AND device_command = '{parameter}' 
-                            AND (CAST(device_value AS FLOAT) < {min_limit} OR CAST(device_value AS FLOAT) > {max_limit})
+                            AND (CAST(device_value AS FLOAT) < {lower_limit} OR CAST(device_value AS FLOAT) > {upper_limit})
                             AND datetime > datetime('now', '-{max_safe_duration} minutes')
                             """
-                        elif min_limit is not None:
+                        elif lower_limit is not None:
                             q = f"""
                             SELECT COUNT(*), MAX(datetime) FROM polling 
                             WHERE device_type = 'ObservingConditions' 
                             AND device_command = '{parameter}' 
-                            AND CAST(device_value AS FLOAT) < {min_limit}
+                            AND CAST(device_value AS FLOAT) < {lower_limit}
                             AND datetime > datetime('now', '-{max_safe_duration} minutes')
                             """
-                        elif max_limit is not None:
+                        elif upper_limit is not None:
                             q = f"""
                             SELECT COUNT(*), MAX(datetime) FROM polling 
                             WHERE device_type = 'ObservingConditions' 
                             AND device_command = '{parameter}' 
-                            AND CAST(device_value AS FLOAT) > {max_limit}
+                            AND CAST(device_value AS FLOAT) > {upper_limit}
                             AND datetime > datetime('now', '-{max_safe_duration} minutes')
                             """
 

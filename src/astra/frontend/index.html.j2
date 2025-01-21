@@ -8,7 +8,27 @@
     <script src="/js/tailwind-3.3.5.js"></script>
     <script src="/js/plotly-2.20.0.min.js" charset="utf-8"></script>
     <script src="/js/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6"></script>
+
+    <script type="text/javascript" src="/js/weather.js"></script>
     <link rel="icon" href="favicon.svg">
+    <style>
+        g[aria-label="tip"] {
+            /* color: black; */
+            fill: rgb(23 23 23);
+        }
+
+        svg[class^="plot-"] {
+            /* color: #fff !important; */
+            /* font-size: large; */
+            background-color: rgb(23 23 23);
+            border-radius: 10px;
+            padding: 10px 0px;
+            margin: 10px 0px;
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body class="bg-black/90 text-slate-100 select-none w-full h-full">
@@ -180,7 +200,8 @@
                     {% elif nav == 'Weather' %}
 
                     <div class="flex-none flex flex-col h-full">
-                        <div id="weather-chart-{{observatory}}"></div>
+                        <div id="weather-latest-{{observatory}}"></div>
+                        <div class="w-full" id="weather-chart-{{observatory}}"></div>
                     </div>
 
                     {% elif nav == 'Controls' %}
@@ -442,101 +463,16 @@
 
         }
 
-        function updateWeatherChart(observatory, update = false) {
+        function updateWeatherChart(observatory) {
+
+            // clear previous chart
+            document.getElementById("weather-chart-" + observatory).innerHTML = "";
 
             fetch('/api/db/polling/' + observatory + '/ObservingConditions')
                 .then(response => response.json())
                 .then(data => {
-
-                    let graphData = [];
-                    let titles = {};
-                    let yaxisRanges = {};
-
-                    Object.keys(data).forEach((deviceCommand) => {
-
-                        let trace = {
-                            x: Object.keys(data[deviceCommand]),
-                            y: Object.values(data[deviceCommand]),
-                            type: 'scatter',
-                            mode: 'markers',
-                            showlegend: false,
-                            name: deviceCommand,
-                            yaxis: 'y' + (Object.keys(data).indexOf(deviceCommand) + 1),
-                        };
-
-                        titles['yaxis' + (Object.keys(data).indexOf(deviceCommand) + 1)] = {
-                            title: deviceCommand,
-                        }
-
-                        // Set yaxis limits based on deviceCommand
-                        yaxisRanges[deviceCommand] = {
-                            min: Math.min(...Object.values(data[deviceCommand])) - 1,
-                            max: Math.max(...Object.values(data[deviceCommand])) + 1,
-                        };
-
-                        if (deviceCommand == 'Temperature') {
-                            yaxisRanges[deviceCommand].min = -10;
-                            yaxisRanges[deviceCommand].max = 50;
-                        } else if (deviceCommand == 'Humidity') {
-                            yaxisRanges[deviceCommand].min = 0;
-                            yaxisRanges[deviceCommand].max = 100;
-                        } else if (deviceCommand == 'SkyTemperature') {
-                            yaxisRanges[deviceCommand].min = -60;
-                            yaxisRanges[deviceCommand].max = 0;
-                        } else if (deviceCommand == 'WindSpeed') {
-                            yaxisRanges[deviceCommand].min = 0;
-                            yaxisRanges[deviceCommand].max = 100;
-                        } else if (deviceCommand == 'DewPoint') {
-                            yaxisRanges[deviceCommand].min = -50;
-                            yaxisRanges[deviceCommand].max = 50;
-                        }
-
-
-                        trace.yaxis.range = [yaxisRanges[deviceCommand].min, yaxisRanges[deviceCommand].max];
-
-                        graphData.push(trace);
-
-                    });
-
-                    let elp = document.getElementById(observatory);
-                    let positionInfo = elp.getBoundingClientRect();
-
-                    let layout_0 = {
-                        grid: {
-                            rows: Object.keys(data).length,
-                            columns: 1,
-                        },
-                        margin: { l: 50, r: 15, b: 70, t: 20 },
-                        paper_bgcolor: 'rgba(0,0,0,0)', // sets background color
-                        plot_bgcolor: 'rgb(36,38,41)', // sets plot area color
-                        font: {
-                            color: 'rgb(242,245,249)' // sets font color
-                        },
-                        width: positionInfo.width - 50,
-                        height: positionInfo.height - 50,
-                    };
-
-                    let layout = {
-                        ...layout_0,
-                        ...titles
-                    }
-
-                    // Set yaxis limits based on deviceCommand
-                    Object.keys(yaxisRanges).forEach((deviceCommand) => {
-                        layout['yaxis' + (Object.keys(data).indexOf(deviceCommand) + 1)].range = [yaxisRanges[deviceCommand].min, yaxisRanges[deviceCommand].max];
-                    });
-
-                    let config = {
-                        responsive: true,
-                        displayModeBar: false,
-                    };
-
-                    if (update == false) {
-                        Plotly.newPlot('weather-chart-' + observatory, graphData, layout, config);
-                    } else {
-                        Plotly.react('weather-chart-' + observatory, graphData, layout, config);
-                    }
-
+                    console.log("running updateWeatherChart")
+                    plotWeather(data, observatory)
                 });
 
         }
@@ -854,16 +790,36 @@
         updateSchedule('{{observatory}}');
 
         // update weather chart
-        updateWeatherChart('{{observatory}}', update = false);
+        updateWeatherChart('{{observatory}}');
 
         // todo: move to websocket?
         setInterval(function () {
-            updateWeatherChart('{{observatory}}', update = true);
+            updateWeatherChart('{{observatory}}');
         }, 60000);
 
         {% endfor %}
 
+        // // for event listeners on all plots
+        const plots = document.querySelectorAll('svg[class^="plot-"]');
+        console.log("plots:", plots);
 
+        plots.forEach((plot) => {
+            // console.log(plot);
+            // plot.addEventListener('input', (event) => {
+            //     console.log(event);
+            // });
+
+            // when user takes finger off the screen
+            plot.addEventListener("touchend", (event) => {
+                // console.log(event);
+                // clear the tooltip
+                const pointerleave = new PointerEvent("pointerleave", {
+                    bubbles: true,
+                    pointerType: "mouse",
+                });
+                event.target.dispatchEvent(pointerleave);
+            });
+        });
 
     </script>
 

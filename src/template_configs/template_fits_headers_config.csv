@@ -80,6 +80,7 @@ HUMIDITY,float,false,ObservingConditions,Humidity,[%] Ambient atmospheric humidi
 AMBTEMP,float,false,ObservingConditions,Temperature,[Celsius] Ambient temperature
 WINDSPD,float,false,ObservingConditions,WindSpeed,[m/s] Wind speed
 SKYTEMP,float,false,ObservingConditions,SkyTemperature,[Celsius] Sky temperature
+SKYLUX,float,false,ObservingConditions,SkyBrightness,[lux] Sky brightness
 OBC-DNAM,str,true,ObservingConditions,Name,Short name of ObservingConditions driver
 OBC-DVER,str,true,ObservingConditions,DriverVersion,ObservingConditions driver version
 ,,,,,

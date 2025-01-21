@@ -246,7 +246,33 @@ async def polling(observatory: str, device_type: str):
     df = df.groupby(pd.Grouper(freq="60s")).mean()
     df = df.dropna()
 
-    return df.to_dict(orient="series")
+    # safety limits, TODO: make this nicer
+    obs = OBSERVATORIES[observatory]
+    closing_limits = obs.config["ObservingConditions"][0]["closing_limits"]
+    safety_limits = {}
+
+    for key in closing_limits:
+        safety_limits[key] = closing_limits[key]
+
+        # find smallest value upper and largest value lower for each key
+        upper_val = float("inf")
+        lower_val = float("-inf")
+        for item in closing_limits[key]:
+            if item.get("upper", float("inf")) < upper_val:
+                upper_val = item["upper"]
+
+            if item.get("lower", float("-inf")) > lower_val:
+                lower_val = item["lower"]
+
+        safety_limits[key] = {
+            "upper": upper_val if upper_val != float("inf") else None,
+            "lower": lower_val if lower_val != float("-inf") else None,
+        }
+
+    return {
+        "data": df.reset_index().to_dict(orient="records"),
+        "safety_limits": safety_limits,
+    }
 
 
 @app.websocket("/ws/log/{observatory}")
