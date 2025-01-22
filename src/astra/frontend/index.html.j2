@@ -766,10 +766,10 @@
         // update schedule table
         updateSchedule('{{observatory}}');
 
-        // update weather chart
+        // init weather chart
         updateWeatherChart('{{observatory}}', update = false);
 
-        // todo: move to websocket?
+        // update weather chart
         setInterval(function () {
             updateWeatherChart('{{observatory}}', update = true);
         }, 30000);
