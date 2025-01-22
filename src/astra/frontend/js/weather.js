@@ -9,22 +9,23 @@
 
 function color_palette(parameter) {
     const colorMap = {
-        CloudCover: "rgba(180, 180, 180, 0.9)", // Light gray, slightly more opaque for visibility
-        DewPoint: "rgba(135, 206, 250, 0.9)", // Lighter, brighter blue for dew point
-        Humidity: "rgba(65, 105, 225, 0.9)", // Royal blue, more vibrant
-        Pressure: "rgba(255, 160, 122, 0.9)", // Lighter coral/salmon for pressure
-        RainRate: "rgba(30, 144, 255, 0.9)", // Dodger blue, more saturated
-        SkyBrightness: "rgba(255, 215, 0, 0.9)", // Bright gold for sky brightness
-        SkyQuality: "rgba(186, 85, 211, 0.9)", // Medium orchid, more readable
-        SkyTemperature: "rgba(46, 139, 87, 0.9)", // Sea green, deeper tone
-        StarFWHM: "rgba(221, 160, 221, 0.9)", // Plum, softer and more visible
-        Temperature: "rgba(255, 99, 71, 0.9)", // Tomato red, vibrant but not too harsh
-        WindDirection: "rgba(100, 149, 237, 0.9)", // Cornflower blue
-        WindGust: "rgba(192, 192, 192, 0.9)", // Silver gray
-        WindSpeed: "rgba(32, 178, 170, 0.9)", // Dark turquoise, slightly brighter
+        CloudCover: "rgba(180, 180, 180, 0.5)", // Light gray, slightly more opaque for visibility
+        DewPoint: "rgba(135, 206, 250, 0.5)", // Lighter, brighter blue for dew point
+        Humidity: "rgba(65, 105, 225, 0.5)", // Royal blue, more vibrant
+        Pressure: "rgba(255, 160, 122, 0.5)", // Lighter coral/salmon for pressure
+        RainRate: "rgba(30, 144, 255, 0.5)", // Dodger blue, more saturated
+        SkyBrightness: "rgba(255, 215, 0, 0.5)", // Bright gold for sky brightness
+        SkyQuality: "rgba(186, 85, 211, 0.5)", // Medium orchid, more readable
+        SkyTemperature: "rgba(46, 129, 187, 0.5)", // Sea blue, deeper tone
+        StarFWHM: "rgba(221, 160, 221, 0.5)", // Plum, softer and more visible
+        Temperature: "rgba(255, 99, 71, 0.5)", // Tomato red, vibrant but not too harsh
+        WindDirection: "rgba(100, 149, 237, 0.5)", // Cornflower blue
+        WindGust: "rgba(192, 192, 192, 0.5)", // Silver gray
+        WindSpeed: "rgba(32, 178, 170, 0.5)", // Dark turquoise, slightly brighter
     };
 
     return colorMap[parameter] || "rgba(128, 128, 128, 0.8)"; // default to grey if parameter not found
+    // return "rgba(255, 255, 255, 0.5)"; // default to grey if parameter not found
 }
 
 // Helper function to create text label for data points
@@ -83,8 +84,8 @@ function plotWeather(data, observatory) {
 
     const width = document.getElementById(`content-${observatory}`).clientWidth;
     const fixed_width = 320;
-    const height = Math.max(width, fixed_width) * 0.4;
-    const percent_to_show = 25;
+    const height = Math.max(width, fixed_width) * 0.3;
+    const percent_to_show = 10;
     const weather_parameters = Object.keys(weather_data[0]);
 
     // sort the weather parameters such that temperature and dew point are first and then humidity, then the rest
@@ -147,15 +148,17 @@ function plotWeather(data, observatory) {
 
 
     document.getElementById(`weather-latest-${observatory}`).innerHTML = `
-        <table style="">
-          <tbody>
-            <tr>
-              <th style="color: gray; text-align: left;">Parameter</th>
-              <th style="color: gray; text-align: left;">Unit</th>
-              <th style="color: gray; text-align: right;">Latest</th>
-              <th style="color: gray; text-align: right;">&#10515;</th>
-              <th style="color: gray; text-align: right;">&#10514;</th>
+        <table class="table-auto w-full proportional-nums font-variant-numeric rounded-lg bg-gray-600/20">
+        <thead>
+            <tr class="border-b-2 border-b-slate-500">
+                <td class="py-1.5 px-3" style="text-align: left;">Parameter</td>
+                <td class="py-1.5 px-3" style="text-align: left;">Unit</td>
+                <td class="py-1.5 px-3" style="text-align: right;">Latest</td>
+                <td class="py-1.5 px-3" style="text-align: right;">&#10515;</td>
+                <td class="py-1.5 px-3" style="text-align: right;">&#10514;</td>
             </tr>
+        </thead>
+        <tbody>
         ${weather_parameters
             .map((parameter, index) => {
                 if (parameter === "datetime") return "";
@@ -201,13 +204,13 @@ function plotWeather(data, observatory) {
                     ? "color: red;"
                     : isCloseToUpperLimit || isCloseToLowerLimit
                         ? "color: orange;"
-                        : "color: gray;";
+                        : "";
 
                 const colorStyle = isExceedingLimit
                     ? "color: red;"
                     : isCloseToUpperLimit || isCloseToLowerLimit
                         ? "color: orange;"
-                        : "";
+                        : "color: rgb(34 197 94 / var(--tw-text-opacity, 1));";
 
                 const colorStyleUpper = isExceedingLimit
                     ? "color: red;"
@@ -221,26 +224,27 @@ function plotWeather(data, observatory) {
                         ? "color: orange;"
                         : "";
 
-                return `<tr>
-                    <td style="text-align: left;"><a href='#plot-${parameter}-${observatory}' style='${colorStyleLink} text-decoration: none;'>${parameter}</a></td>
-                    <td style="${colorStyleLink} text-align: left;">${weather_safety_limits[parameter].unit
+                return `<tr class="${index != weather_parameters.length - 1 ? 'border-b border-b-slate-500' : ""} cursor-pointer"
+                            onclick="window.location.href='#plot-${parameter}-${observatory}';">
+                            <td class="py-1.5 px-3" style="text-align: left; ${colorStyleLink}">${parameter}</td>
+                            <td class="py-1.5 px-3" style="${colorStyleLink} text-align: left;">${weather_safety_limits[parameter].unit
                     }</td>
-                    <td style="font-weight: bold; text-align: right; ${colorStyle}">
-                    ${latest_values[parameter].toFixed(1)}
-                    </td>
-                    <td style="text-align: right; ${colorStyleLower}">
-                    ${weather_safety_limits[parameter].lower !== null
+                            <td class="py-1.5 px-3" style="text-align: right; ${colorStyle}">
+                            ${latest_values[parameter].toFixed(1)}
+                            </td>
+                            <td class="py-1.5 px-3" style="text-align: right; ${colorStyleLower}">
+                            ${weather_safety_limits[parameter].lower !== null
                         ? weather_safety_limits[parameter].lower.toFixed(1)
                         : ""
                     }
-                    </td>
-                    <td style="text-align: right; ${colorStyleUpper}">
-                    ${weather_safety_limits[parameter].upper !== null
+                            </td>
+                            <td class="py-1.5 px-3" style="text-align: right; ${colorStyleUpper}">
+                            ${weather_safety_limits[parameter].upper !== null
                         ? weather_safety_limits[parameter].upper.toFixed(1)
                         : ""
                     }
-                    </td>
-                    </tr>`;
+                            </td>
+                        </tr>`;
             })
             .join("")}
           </tbody>
