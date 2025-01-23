@@ -280,13 +280,25 @@ async def polling(observatory: str, device_type: str, day: float = 1):
     }
 
 
+@app.get("/api/log/{observatory}")
+async def log(observatory: str, datetime: str):
+    db = observatory_db(observatory)
+    q = f"""SELECT * FROM (SELECT * FROM log WHERE datetime < '{datetime}' ORDER BY datetime DESC LIMIT 100) a ORDER BY datetime ASC"""
+
+    df = pd.read_sql_query(q, db)
+
+    db.close()
+
+    return df.to_dict(orient="records")
+
+
 @app.websocket("/ws/log/{observatory}")
 async def websocket_log(websocket: WebSocket, observatory: str):
     await websocket.accept()
     obs = OBSERVATORIES[observatory]
 
     db = observatory_db(observatory)
-    q = """SELECT * FROM (SELECT * FROM log ORDER BY datetime DESC LIMIT 1000) a ORDER BY datetime ASC"""
+    q = """SELECT * FROM (SELECT * FROM log ORDER BY datetime DESC LIMIT 100) a ORDER BY datetime ASC"""
     initial_df = pd.read_sql_query(q, db)
 
     last_time = initial_df.datetime.iloc[-1]
@@ -729,6 +741,8 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
             "table1": table1,
             "last_image": {"url": LAST_IMAGE_JPG, "useful_headers": USEFUL_HEADERS},
         }
+
+        obs.logger.info("Sending data to websocket")
 
         # make temp image, say how many images have been made?
         try:
