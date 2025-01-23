@@ -388,12 +388,13 @@ function plotWeather(data, observatory, update, popup) {
     };
 
     let table = document.getElementById(`weather-table-${observatory}`)
+    let refreshTime = new Date().toISOString().slice(0, 19).replace("T", " ");
     table.addEventListener('mouseover', (e) => {
         popup.classList.remove('hidden');
         popup.classList.add('block');
 
         // If less than 10 lines, just set the text
-        popup.innerHTML = "Last refreshed: " + new Date().toISOString().slice(0, 19).replace("T", " ") + "<br>";
+        popup.innerHTML = "Last refreshed: " + refreshTime;
 
         movePopup(e);
     });
