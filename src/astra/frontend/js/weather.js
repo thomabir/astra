@@ -75,7 +75,7 @@ function addUnits(parameter, weather_safety_limits) {
     }
 }
 
-function plotWeather(data, observatory, update) {
+function plotWeather(data, observatory, update, popup) {
 
     console.log("Plotting weather data for ", observatory);
 
@@ -146,7 +146,7 @@ function plotWeather(data, observatory, update) {
 
 
     document.getElementById(`weather-latest-${observatory}`).innerHTML = `
-        <table class="table-auto w-full proportional-nums font-variant-numeric rounded-lg bg-gray-600/20">
+        <table class="table-auto w-full proportional-nums font-variant-numeric rounded-lg bg-gray-600/20" id="weather-table-${observatory}">
         <thead>
             <tr class="border-b-2 border-b-slate-500">
                 <td class="py-1.5 px-3" style="text-align: left;">Parameter</td>
@@ -386,6 +386,41 @@ function plotWeather(data, observatory, update) {
             }
         });
     };
+
+    let table = document.getElementById(`weather-table-${observatory}`)
+    table.addEventListener('mouseover', (e) => {
+        popup.classList.remove('hidden');
+        popup.classList.add('block');
+
+        // If less than 10 lines, just set the text
+        popup.innerHTML = "Last refreshed: " + new Date().toISOString().slice(0, 19).replace("T", " ") + "<br>";
+
+        movePopup(e);
+    });
+
+    table.addEventListener('mousemove', (e) => {
+        movePopup(e);
+    });
+
+    table.addEventListener('mouseout', () => {
+        popup.classList.remove('block');
+        popup.classList.add('hidden');
+
+    });
+
+    table.addEventListener('click', (e) => {
+        // toggle
+        console.log("clicked")
+        if (popup.classList.contains('hidden')) {
+            popup.classList.remove('hidden');
+            popup.classList.add('block');
+        } else {
+            popup.classList.remove('block');
+            popup.classList.add('hidden');
+        }
+    });
+
+
 
     createWeatherPlots(
         weather_data,
