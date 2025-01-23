@@ -445,6 +445,15 @@ function plotWeather(data, observatory, update) {
             x: { domain: [-1.06, 1.06], axis: null },
             y: { domain: [-1.06, 1.06], axis: null },
             marks: [
+                Plot.text([{ x: 1.05, y: 1.05 }], {
+                    // label
+                    x: "x",
+                    y: "y",
+                    text: (d) => "WindDirection (°) ↻",
+                    dy: 0,
+                    textAnchor: "end",
+                    lineAnchor: "top",
+                }),
                 Plot.dot(wind_direction_data, {
                     x: "xs",
                     y: "ys",
@@ -552,14 +561,11 @@ function plotWeather(data, observatory, update) {
                         px: "xs",
                         py: "ys",
                         dy: 0,
-                        frameAnchor: "top-right",
+                        frameAnchor: "top-left",
                         fontVariant: "tabular-nums",
                         text: (d) =>
                             [
-                                `${new Date(d.date)
-                                    .toISOString()
-                                    .slice(0, 19)
-                                    .replace("T", " ")}`,
+                                `${d.date}`,
                                 `${d.speed.toFixed(2)} ${weather_safety_limits["WindSpeed"]["unit"]
                                 }`,
                                 `${d.angle.toFixed(2)} ${weather_safety_limits["WindDirection"]["unit"]
