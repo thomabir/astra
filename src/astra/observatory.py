@@ -1482,11 +1482,7 @@ class Observatory:
 
         try:
             if row["device_type"] == "Camera":
-                cam_index = [
-                    i
-                    for i, d in enumerate(self.config["Camera"])
-                    if d["device_name"] == row["device_name"]
-                ][0]
+                cam_index = self.get_cam_index(row["device_name"])
                 paired_devices = self.config["Camera"][cam_index]["paired_devices"]
                 paired_devices["Camera"] = row["device_name"]
                 set_temperature = self.config["Camera"][cam_index]["temperature"]
@@ -1527,7 +1523,7 @@ class Observatory:
                     # close all dome(s) and park telescope(s)
                     self.close_observatory()
 
-            elif "cool" == row["action_type"]:
+            elif "cool_camera" == row["action_type"]:
                 if "Camera" in self.config:
                     self.cool_camera(row, set_temperature, temperature_tolerance)
 
@@ -1688,10 +1684,6 @@ class Observatory:
             and self.check_conditions()
         ):
             if "Telescope" in paired_devices:
-                if "Dome" not in paired_devices:
-                    self.logger.warning(
-                        f"Telescope {paired_devices['Telescope']} has no paired Dome. Opening all available domes."
-                    )
 
                 # open dome and unpark telescope -- this will open all domes if not in paired_devices...?
                 self.open_observatory(paired_devices)
@@ -1814,7 +1806,12 @@ class Observatory:
 
         if row["action_type"] in ["open", "object", "flats", "autofocus"]:
             return base_conditions and time_conditions and self.weather_safe
-        elif row["action_type"] in ["calibration", "close"]:
+        elif row["action_type"] in [
+            "calibration",
+            "close",
+            "cool_camera",
+            "complete_headers",
+        ]:
             return base_conditions and time_conditions
         else:
             return False
@@ -2178,11 +2175,7 @@ class Observatory:
         camera = self.devices[row["device_type"]][row["device_name"]]
 
         # target adu and camera offset needed for flat exposure time calculation
-        cam_index = [
-            i
-            for i, d in enumerate(self.config["Camera"])
-            if d["device_name"] == row["device_name"]
-        ][0]
+        cam_index = self.get_cam_index(row["device_name"])
         target_adu = self.config["Camera"][cam_index]["flats"]["target_adu"]
         offset = self.config["Camera"][cam_index]["flats"]["bias_offset"]
         lower_exptime_limit = self.config["Camera"][cam_index]["flats"][
@@ -2631,6 +2624,22 @@ class Observatory:
 
             return exptime
 
+    def get_cam_index(self, cam: str) -> int:
+        """
+        Get the index of a camera device in the configuration file.
+
+        Parameters:
+            cam (str): The name of the camera device.
+
+        Returns:
+            int: The index of the camera device in the configuration file.
+
+        """
+        cam_index = [
+            i for i, d in enumerate(self.config["Camera"]) if d["device_name"] == cam
+        ][0]
+        return cam_index
+
     def base_header(self, paired_devices: dict, action_value: dict) -> fits.Header:
         """
         This function creates a base header for the fits file.
@@ -2785,11 +2794,7 @@ class Observatory:
                     df_images_filt = df_images[df_images["camera_name"] == cam]
 
                     # get paired devices for camera
-                    cam_index = [
-                        i
-                        for i, d in enumerate(self.config["Camera"])
-                        if d["device_name"] == cam
-                    ][0]
+                    cam_index = self.get_cam_index(cam)
                     paired_devices = self.config["Camera"][cam_index]["paired_devices"]
                     paired_devices["Camera"] = cam
 

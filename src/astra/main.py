@@ -29,7 +29,7 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 # global variables
 CONFIG = Config()
 FRONTEND_PATH = Path(__file__).parent / "frontend"
-OBSERVATORIES = {}
+OBSERVATORIES: dict[str, Observatory] = {}
 WEBCAMFEEDS = {}
 FWS = {}
 DEBUG = False
@@ -205,6 +205,26 @@ async def start_schedule(observatory: str):
 async def stop_schedule(observatory: str):
     obs = OBSERVATORIES[observatory]
     obs.schedule_running = False
+
+    return {"status": "success", "data": "null", "message": ""}
+
+
+@app.get("/api/cool_camera/{observatory}/{device_name}")
+async def cool_camera(observatory: str, device_name: str):
+    obs = OBSERVATORIES[observatory]
+
+    row = {"device_name": device_name}
+
+    cam_index = obs.get_cam_index(row["device_name"])
+
+    set_temperature = obs.config["Camera"][cam_index]["temperature"]
+    temperature_tolerance = obs.config["Camera"][cam_index]["temperature_tolerance"]
+
+    obs.cool_camera(
+        row,
+        set_temperature=set_temperature,
+        temperature_tolerance=temperature_tolerance,
+    )
 
     return {"status": "success", "data": "null", "message": ""}
 
@@ -420,15 +440,15 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
                     dt = (
                         dt_tracking
                         if tracking
-                        else dt_slewing
-                        if slewing
-                        else dt_tracking
+                        else dt_slewing if slewing else dt_tracking
                     )
 
                     try:
                         polled["RightAscension"]["value"] = polled["RightAscension"][
                             "value"
-                        ] * (360 / 24)  # convert to degrees
+                        ] * (
+                            360 / 24
+                        )  # convert to degrees
                     except:
                         pass
 
@@ -761,6 +781,7 @@ async def serve_files(request: Request, path: str = ""):
                 "request": request,
                 "observatories": list(OBSERVATORIES.keys()),
                 "webcamfeeds": WEBCAMFEEDS,
+                "configs": {obs.name: obs.config for obs in OBSERVATORIES.values()},
             },
             request=request,
         )
