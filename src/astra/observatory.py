@@ -3256,8 +3256,9 @@ class Observatory:
 
                 elif isclose and ran:
                     self.logger.info(
-                        f"Monitor-action for {device_name} complete: Desired condition of {desired_condition} met "
-                        f"after running {run_command} on {device_type}"
+                        f"Monitor-action for {device_name} complete: Desired condition of {desired_condition} "
+                        f"for {monitor_command} met, after running "
+                        f"{run_command}{'=' + str(desired_condition) if run_command_type == 'set' else ''} on {device_type}"
                     )
                     return
 
