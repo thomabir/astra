@@ -130,7 +130,7 @@
 
                     <div class="flex flex-row justify-center items-center">
                         {# lastest image #}
-                        <div id="summary-last-image-parent-{{ observatory }}"
+                        <a id="summary-last-image-parent-{{ observatory }}"
                             class="flex justify-center basis-1/2 mr-2 relative">
                             <img id="summary-last-image-{{ observatory }}" alt="lastest image"
                                 class="object-contain h-full w-full hidden">
@@ -143,10 +143,11 @@
                             </svg>
                             <div
                                 class="flex opacity-0 hover:opacity-80 bg-black duration-100 absolute h-full w-full text-white justify-center items-center">
-                                <div id="summary-last-image-text-{{ observatory }}" class="whitespace-break-spaces">
+                                <div id="summary-last-image-text-{{ observatory }}"
+                                    class="whitespace-break-spaces md:text-base text-xs text-wrap truncate">
                                 </div>
                             </div>
-                        </div>
+                        </a>
 
                         {# webcam feed #}
                         <div class="flex basis-1/2 ml-2 justify-center">
@@ -758,11 +759,13 @@
                     document.getElementById("summary-last-image-placeholder-" + observatory).classList.add('hidden');
                     document.getElementById("summary-last-image-" + observatory).src = lastImage['url'];
                     document.getElementById("summary-last-image-text-" + observatory).innerHTML = syntaxHighlight(lastImage['useful_headers']);
+                    lastImageDiv.href = lastImage['url'];
 
                 } else {
                     document.getElementById("summary-last-image-" + observatory).classList.add('hidden');
                     document.getElementById("summary-last-image-placeholder-" + observatory).classList.remove('hidden');
                     document.getElementById("summary-last-image-text-" + observatory).innerHTML = syntaxHighlight({ 'image': 'no image found' });
+                    lastImageDiv.href = '#';
                 }
 
 
