@@ -1212,7 +1212,7 @@ class Observatory:
                     "Tracking",
                     False,
                     "Tracking",
-                    device_name=device_name,
+                    device_name=paired_devices["Telescope"],
                     log_message=f"Stopping telescope {paired_devices['Telescope']} tracking",
                     weather_sensitive=False,
                     error_sensitive=error_sensitive,
