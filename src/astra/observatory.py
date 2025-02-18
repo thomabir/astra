@@ -2038,6 +2038,9 @@ class Observatory:
                 else:
                     log_option = None
 
+                if not self.check_conditions(row):
+                    break
+
                 success, filepath = self.perform_exposure(
                     camera,
                     exptime,
