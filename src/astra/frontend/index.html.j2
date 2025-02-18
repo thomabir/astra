@@ -808,9 +808,9 @@
                     let visibleHeight = div.clientHeight;
 
                     // console.log("b", scrollPos, visibleHeight, scrollPos + visibleHeight, divHeight, scrollPos + visibleHeight - divHeight);
-
+                    // console.log(log.length, scrollPos + visibleHeight + 300, 100 * log.length, divHeight)
                     // if the div is scrolled to the bottom
-                    if (scrollPos + visibleHeight + 300 >= divHeight && log.length > 0) {
+                    if (scrollPos + visibleHeight + 300 + 100 * log.length >= divHeight && log.length > 0) {
                         div.scrollTop = div.scrollHeight;
                     }
 
