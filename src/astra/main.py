@@ -63,6 +63,8 @@ def load_observatories():
         if "FilterWheel" in obs.devices:
             FWS[obs.name] = {}
             for fw_name in obs.devices["FilterWheel"].keys():
+                filter_names = obs.devices["FilterWheel"][fw_name].get("Names")
+                obs.logger.info(f"FilterWheel {fw_name} has filters: {filter_names}")
                 FWS[obs.name][fw_name] = obs.devices["FilterWheel"][fw_name].get(
                     "Names"
                 )

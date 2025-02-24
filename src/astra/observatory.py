@@ -1370,6 +1370,12 @@ class Observatory:
                         self.schedule_path,
                         truncate=self.truncate_schedule,
                     )
+
+                    # dump text of schedule to log by reading raw file
+                    with open(self.schedule_path, "r") as f:
+                        schedule_text = f.read()
+                        self.logger.info(f"Schedule read: {schedule_text}")
+
                     return schedule
                 except Exception as e:
                     self.logger.warning(
