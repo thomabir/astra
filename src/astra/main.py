@@ -173,15 +173,15 @@ async def heartbeat(observatory: str):
     return {"status": "success", "data": obs.heartbeat, "message": ""}
 
 
-@app.get("/api/open/{observatory}")
-def open_observatory(observatory: str):
-    obs = OBSERVATORIES[observatory]
+# @app.get("/api/open/{observatory}")
+# def open_observatory(observatory: str):
+#     obs = OBSERVATORIES[observatory]
 
-    obs.logger.info(f"User initiated opening of observatory from web interface")
+#     obs.logger.info(f"User initiated opening of observatory from web interface")
 
-    obs.open_observatory()
+#     obs.open_observatory()
 
-    return {"status": "success", "data": "null", "message": ""}
+#     return {"status": "success", "data": "null", "message": ""}
 
 
 @app.get("/api/close/{observatory}")
@@ -496,15 +496,15 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
                     dt = (
                         dt_tracking
                         if tracking
-                        else dt_slewing
-                        if slewing
-                        else dt_tracking
+                        else dt_slewing if slewing else dt_tracking
                     )
 
                     try:
                         polled["RightAscension"]["value"] = polled["RightAscension"][
                             "value"
-                        ] * (360 / 24)  # convert to degrees
+                        ] * (
+                            360 / 24
+                        )  # convert to degrees
                     except:
                         pass
 
@@ -830,7 +830,7 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
 
 @app.get("/autofocus", include_in_schema=False)
 async def autofocus(request: Request):
-    """ TODO: Implement
+    """TODO: Implement
     Pass the csv file and the fits file_names
     Call fits files in the csv file
     """

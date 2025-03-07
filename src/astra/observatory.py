@@ -18,6 +18,7 @@ from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.io import fits
 from astropy.time import Time
 from astropy.wcs.utils import WCS
+
 # https://github.com/dashawn888/sqlite3worker
 from sqlite3worker import Sqlite3Worker
 
@@ -136,7 +137,9 @@ class Observatory:
             self.schedule = self.read_schedule()
 
         # load devices
-        self.monitor_action_queue = {}  # queue for monitoring/running actions per device_name
+        self.monitor_action_queue = (
+            {}
+        )  # queue for monitoring/running actions per device_name
         self.devices = self.load_devices()
         self.last_image = None
 
@@ -2658,8 +2661,6 @@ class Observatory:
                     upper_exptime_limit,
                 )
 
-                # TODO: check for conditions again before starting exposure
-
                 if exptime < lower_exptime_limit or exptime > upper_exptime_limit:
                     self.logger.info("Moving on...")
                     continue
@@ -2823,6 +2824,12 @@ class Observatory:
 
         sun_rising, take_flats, sun_altaz = utils.is_sun_rising(obs_location)
 
+        # initial exposure time guess
+        if exptime is None and sun_rising is False:
+            exptime = lower_exptime_limit
+        elif exptime is None and sun_rising is True:
+            exptime = upper_exptime_limit
+
         if ("Camera" in paired_devices) and self.check_conditions(row) and take_flats:
             camera = self.devices["Camera"][paired_devices["Camera"]]
 
@@ -2844,12 +2851,6 @@ class Observatory:
             #                     log_message = f"Setting Camera {paired_devices['Camera']} StartY to {int(numy/2 - 32)}")
 
             time.sleep(1)  # wait for camera to settle
-
-            # initial exposure time guess
-            if exptime is None and sun_rising is False:
-                exptime = lower_exptime_limit
-            elif exptime is None and sun_rising is True:
-                exptime = upper_exptime_limit
 
             self.logger.info(
                 f"Exposing full frame of {paired_devices['Camera']} for exposure time {exptime} s"
