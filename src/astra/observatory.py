@@ -1838,6 +1838,9 @@ class Observatory:
         if "bin" in action_value:
             if "Camera" in paired_devices:
                 camera = self.devices["Camera"][paired_devices["Camera"]]
+                self.logger.info(
+                    f"Setting Camera {paired_devices['Camera']} binning to {action_value['bin']}"
+                )
                 camera.set("BinX", action_value["bin"])
                 camera.set("BinY", action_value["bin"])
                 camera.set("NumX", camera.get("CameraXSize") // camera.get("BinX"))
