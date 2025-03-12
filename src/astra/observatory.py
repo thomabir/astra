@@ -2632,7 +2632,7 @@ class Observatory:
                 time_to_wait = 24 * 60 + time_to_wait
 
             self.logger.info(
-                f"Waiting {time_to_wait:.2f} minutes for sun to be in right position for {row['device_name']}"
+                f"Waiting min. {time_to_wait:.2f} minutes for sun to be in right position for {row['device_name']}"
             )
 
         while self.check_conditions(row) and (take_flats is False):
@@ -2970,7 +2970,7 @@ class Observatory:
 
             time.sleep(1)  # wait for camera to settle
 
-            return exptime
+        return exptime
 
     def get_cam_index(self, cam: str) -> int:
         """
