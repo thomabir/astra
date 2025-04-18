@@ -343,7 +343,10 @@ def check_astelos_error(telescope, close=False):
             elements = part.split(";")
 
             for element in elements:
-                error_detail = element.split("|")
+                error_detail = element.replace("\\|", "[ESCAPED_PIPE]").split("|")
+                error_detail = [
+                    item.replace("[ESCAPED_PIPE]", "\\|") for item in error_detail
+                ]
 
                 if len(error_detail) == 4:
                     if not error_detail[1].isdigit():
