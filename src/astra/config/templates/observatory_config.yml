@@ -3,7 +3,7 @@ Telescope:
     ip: localhost
     device_number: 0
     pointing_threshold: 0.06 # arcmins
-    guider: # set by the user using src/astra/scripts/calibrate_guiding.py
+    guider: # set by the user using calibrate_guiding sequence
       PIX2TIME:
         "+x": 69.32860207831231
         "-x": 69.05795081331794
@@ -85,5 +85,5 @@ SafetyMonitor:
     max_safe_duration: 30
 
 Misc:
-  # Webcam: http://172.16.0.198:8888/inside
+  # Webcam: http://localhost:8888/inside # hls stream, see https://github.com/bluenviron/mediamtx
   backup_time: "12:00" # back up of polled data (e.g. CCDTemperature) and logs

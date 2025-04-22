@@ -6,6 +6,15 @@ Observatory Configuration
 
 Astra requires a configuration file in YAML format for each observatory you want to operate. This file defines all the devices, their settings, and how they interact with each other.
 
+
+.. literalinclude:: ../../../src/astra/config/templates/observatory_config.yml
+  :language: yaml
+  :caption: Example Observatory Configuration
+
+.. csv-table:: Example FITS Header Configuration
+  :file: ../../../src/astra/config/templates/observatory_fits_header_config.csv
+  :header-rows: 1
+
 Device Types
 ~~~~~~~~~~~
 

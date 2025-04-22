@@ -1,8 +1,8 @@
 Astra Documentation
 ==================
 
-.. image:: ../../astra-art.png
-   :width: 300px
+.. image:: ./_static/astra-banner.jpg
+   :width: 100%
    :align: center
    :alt: Astra logo
 
@@ -23,9 +23,9 @@ Used By
 Astra is already used at multiple observatories around the world, including:
 
 * SPECULOOS-South: Paranal, Chile
-* SPECULOOS-North: Teide Observatory, Tenerife, Spain
 * Saint-Ex: San Pedro Mártir, Mexico
 * ETH Observatory: Zurich, Switzerland
+.. * SPECULOOS-North: Teide Observatory, Tenerife, Spain ... soon
 
 .. note::
 
