@@ -1447,6 +1447,10 @@ class Observatory:
 
         """
 
+        if self.schedule is None:
+            self.logger.warning("Schedule not loaded")
+            return
+
         if self.schedule_running:
             self.logger.warning("Schedule already running")
             return
