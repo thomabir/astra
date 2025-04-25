@@ -263,6 +263,18 @@ async def stop_watchdog(observatory: str):
     return {"status": "success", "data": "null", "message": ""}
 
 
+@app.get("/api/roboticswitch/{observatory}")
+async def roboticswitch(observatory: str):
+
+    obs = OBSERVATORIES[observatory]
+
+    obs.logger.info(f"User initiated switching of robotics from web interface")
+
+    obs.toggle_robotic_switch()
+
+    return {"status": "success", "data": obs.robotic_switch, "message": ""}
+
+
 @app.get("/api/startschedule/{observatory}")
 async def start_schedule(observatory: str):
     obs = OBSERVATORIES[observatory]
@@ -467,6 +479,10 @@ async def websocket_endpoint(websocket: WebSocket, observatory: str):
             {
                 "item": "schedule",
                 "value": "running" if obs.schedule_running else "stopped",
+            },
+            {
+                "item": "robotic switch",
+                "value": "on" if obs.robotic_switch else "off",
             },
             {"item": "weather safe", "value": "safe" if obs.weather_safe else "unsafe"},
             {

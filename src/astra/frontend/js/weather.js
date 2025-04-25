@@ -76,7 +76,7 @@ function addUnits(parameter, weather_safety_limits) {
 // Function to plot weather data
 function plotWeather(data, observatory, update) {
 
-    console.log("Plotting weather data for ", observatory);
+    console.log("Plotting weather data for", observatory);
 
     const weather_data = data['data'];
     const weather_safety_limits = data['safety_limits'];
@@ -349,14 +349,12 @@ function plotWeather(data, observatory, update) {
                 baseConfig.y.domain = safety_limits.domain;
                 const rules = [];
                 if (safety_limits.lower !== null) {
-                    console.log("lower safety limit exists for ", parameter);
                     rules.push({
                         value: safety_limits.lower,
                         label: "lower safety limit",
                     });
                 }
                 if (safety_limits.upper !== null) {
-                    console.log("upper safety limit exists for ", parameter);
                     rules.push({
                         value: safety_limits.upper,
                         label: "upper safety limit",
@@ -400,7 +398,6 @@ function plotWeather(data, observatory, update) {
 
     // plot wind direction
     if (weather_parameters.includes("WindDirection")) {
-        console.log("WindDirection found in the weather data");
 
         const start_datetime = new Date(weather_data[0].datetime + 'Z').getTime();
         const end_datetime = new Date().getTime();
@@ -423,7 +420,6 @@ function plotWeather(data, observatory, update) {
                 return { angle, radius, date, date_parsed, speed, xs, ys };
             }
         );
-        console.log("WindDirection data: ", wind_direction_data);
 
         if (weather_safety_limits["WindSpeed"]["lower"] === null) {
             weather_safety_limits["WindSpeed"]["lower"] = 0;
@@ -590,8 +586,6 @@ function plotWeather(data, observatory, update) {
             newPlotContainer.appendChild(plot_winddir);
             plotContainer.appendChild(newPlotContainer);
         }
-    } else {
-        console.log("WindDirection not found in the weather data");
     }
 
 };

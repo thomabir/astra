@@ -55,9 +55,24 @@
 
                 <div class="grow">
                     <div class="flex flex-row-reverse h-full items-center">
+
+                        <label for="robotic-switch-{{ observatory }}" class="flex items-center cursor-pointer  m-2">
+                            <div class="relative">
+                                <input type="checkbox" id="robotic-switch-{{ observatory }}" class="sr-only peer">
+                                <div
+                                    class="w-10 h-6 bg-gray-300 rounded-full shadow-inner peer-checked:bg-blue-600 transition-colors duration-300">
+                                </div>
+                                <div
+                                    class="absolute left-0 top-0.5 w-5 h-5 bg-white rounded-full shadow transform transition-transform duration-300 peer-checked:translate-x-full">
+                                </div>
+                            </div>
+                        </label>
+
+                        <div class="border-r-2 border-neutral-500 border-opacity-50 mx-1">&nbsp;</div>
+
                         <div title="Schedule">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                class="w-6 h-6 m-2 cursor-pointer transition ease-in-out duration-150"
+                                class="w-6 h-6 transition ease-in-out duration-150"
                                 id="schedule-icon-{{ observatory }}">
                                 <path
                                     d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
@@ -67,11 +82,9 @@
                             </svg>
                         </div>
 
-                        <div class="border-r-2 border-neutral-500 border-opacity-50 mx-2">&nbsp;</div>
-
                         <div title="Weather">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" fill="currentColor"
-                                class="w-6 h-6 transition ease-in-out duration-150"
+                                class="w-6 h-6 mr-2 transition ease-in-out duration-150"
                                 id="weather-safe-icon-{{ observatory }}">
                                 <path
                                     d="M288 0c17.7 0 32 14.3 32 32V49.7C451.8 63.4 557.7 161 573.9 285.9c2 15.6-17.3 24.4-27.8 12.7C532.1 283 504.8 272 480 272c-38.7 0-71 27.5-78.4 64.1c-1.7 8.7-8.7 15.9-17.6 15.9s-15.8-7.2-17.6-15.9C359 299.5 326.7 272 288 272s-71 27.5-78.4 64.1c-1.7 8.7-8.7 15.9-17.6 15.9s-15.8-7.2-17.6-15.9C167 299.5 134.7 272 96 272c-24.8 0-52.1 11-66.1 26.7C19.4 310.4 .1 301.5 2.1 285.9C18.3 161 124.2 63.4 256 49.7V32c0-17.7 14.3-32 32-32zm0 304c12.3 0 23.5 4.6 32 12.2V430.6c0 45-36.5 81.4-81.4 81.4c-30.8 0-59-17.4-72.8-45l-2.3-4.7c-7.9-15.8-1.5-35 14.3-42.9s35-1.5 42.9 14.3l2.3 4.7c3 5.9 9 9.6 15.6 9.6c9.6 0 17.4-7.8 17.4-17.4V316.2c8.5-7.6 19.7-12.2 32-12.2z" />
@@ -166,7 +179,6 @@
                     <div class="flex flex-col space-y-4 h-full">
 
                         <div class="flex-none basis-1/4 overflow-auto">
-                            {# <span class="my-4">schedule</span> #}
                             <table id="schedule-table-0-{{ observatory }}"
                                 class="text-left w-full table-auto rounded-lg bg-gray-600/20">
                                 <thead>
@@ -194,32 +206,8 @@
                     {% elif nav == 'Controls' %}
 
                     <div class="flex flex-col flex-grow place-content-center items-center my-auto">
-                        <div class="grid grid-cols-2 gap-4 md:w-3/6 sm:w-full my-4">
-                            <button
-                                class="text-sm font-medium rounded-xl aspect-square bg-gray-600/20 hover:bg-gray-700/20 px-5 py-2.5 transition ease-in-out duration-150"
-                                id="schedule-control-{{observatory}}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="w-1/2 h-1/2 mx-auto" id="schedule-icon-{{ observatory }}">
-                                    <path
-                                        d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                                    <path fill-rule="evenodd"
-                                        d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <span>Schedule</span>
-                            </button>
+                        <div class="grid grid-cols-1 gap-4 md:w-2/6 my-4">
 
-                            {# <button
-                                class="text-white/50 text-sm font-medium rounded-xl aspect-square bg-gray-600/20 hover:bg-gray-700/20 px-5 py-2.5"
-                                onclick="openObservatory('{{observatory}}')">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="w-1/2 h-1/2 mx-auto">
-                                    <path fill-rule="evenodd"
-                                        d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm.53 5.47a.75.75 0 00-1.06 0l-3 3a.75.75 0 101.06 1.06l1.72-1.72v5.69a.75.75 0 001.5 0v-5.69l1.72 1.72a.75.75 0 101.06-1.06l-3-3z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                                <span>Open observatory</span>
-                            </button> #}
                             <button
                                 class="text-white/50 text-sm font-medium rounded-xl aspect-square bg-gray-600/20 hover:bg-gray-700/20 px-5 py-2.5"
                                 onclick="closeObservatory('{{observatory}}')">
@@ -500,7 +488,6 @@
             fetch('/api/db/polling/' + observatory + '/ObservingConditions?day=3')
                 .then(response => response.json())
                 .then(data => {
-                    console.log("running updateWeatherChart")
                     plotWeather(data, observatory, update);
                 })
                 .then(() => {
@@ -569,26 +556,6 @@
         function completeHeaders(observatory) {
             if (confirm("Are you sure you want to complete the headers?")) {
                 fetch('/api/complete_headers/' + observatory)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                    });
-            }
-        }
-
-        function startSchedule(observatory) {
-            if (confirm("Are you sure you want to start the schedule?")) {
-                fetch('/api/startschedule/' + observatory)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                    });
-            }
-        }
-
-        function stopSchedule(observatory) {
-            if (confirm("Are you sure you want to stop the schedule?")) {
-                fetch('/api/stopschedule/' + observatory)
                     .then(response => response.json())
                     .then(data => {
                         console.log(data);
@@ -675,39 +642,42 @@
                 if (message['table1'][3]['item'] == "schedule") {
 
                     let schedule_icon = document.getElementById("schedule-icon-" + observatory);
-                    let schedule_control = document.getElementById("schedule-control-" + observatory);
-
                     if (message['table1'][3]['value'] == "stopped") {
                         schedule_icon.classList.add('text-gray-500');
                         schedule_icon.classList.add('hover:text-gray-400')
                         schedule_icon.classList.remove('text-green-500');
                         schedule_icon.classList.remove('hover:text-green-400');
-                        schedule_icon.onclick = function () { startSchedule(observatory); };
-
-                        schedule_control.classList.add('text-gray-500');
-                        schedule_control.classList.remove('text-green-500');
-                        schedule_control.onclick = function () { startSchedule(observatory); };
+                        // schedule_icon.onclick = function () { startSchedule(observatory); };
 
                     } else {
                         schedule_icon.classList.remove('text-gray-500');
                         schedule_icon.classList.remove('hover:text-gray-400')
                         schedule_icon.classList.add('text-green-500');
                         schedule_icon.classList.add('hover:text-green-400');
-                        schedule_icon.onclick = function () { stopSchedule(observatory); };
+                        // schedule_icon.onclick = function () { stopSchedule(observatory); };
+                    }
 
-                        schedule_control.classList.remove('text-gray-500');
-                        schedule_control.classList.add('text-green-500');
-                        schedule_control.onclick = function () { stopSchedule(observatory); };
+                }
+
+                // update robotic switch toggle
+                if (message['table1'][4]['item'] == "robotic switch") {
+
+                    let robotic_switch = document.getElementById("robotic-switch-icon-" + observatory);
+
+                    if (message['table1'][4]['value'] == "on") {
+                        document.getElementById('robotic-switch-' + observatory).checked = true;
+                    } else {
+                        document.getElementById('robotic-switch-' + observatory).checked = false;
                     }
 
                 }
 
                 // update weather safe icon
-                if (message['table1'][4]['item'] == "weather safe") {
+                if (message['table1'][5]['item'] == "weather safe") {
 
                     let weather_safe_icon = document.getElementById("weather-safe-icon-" + observatory);
 
-                    if (message['table1'][4]['value'] == "unsafe") {
+                    if (message['table1'][5]['value'] == "unsafe") {
                         weather_safe_icon.classList.add('text-red-700');
                         weather_safe_icon.classList.add('hover:text-red-600');
                         weather_safe_icon.classList.remove('text-green-500');
@@ -724,9 +694,9 @@
                 }
 
                 // loop through rows of schedule table and change color of row that matches thread id
-                if (message['table1'][6]['item'] == "threads") {
+                if (message['table1'][7]['item'] == "threads") {
 
-                    let threads = message['table1'][6]['threads'];
+                    let threads = message['table1'][7]['threads'];
                     let table = document.getElementById("schedule-table-0-" + observatory);
                     let rows = table.getElementsByTagName("tr");
 
@@ -749,7 +719,7 @@
                         // remove error free status
                         message['table1'].splice(0, 1);
                         // remove weather safe, error source
-                        message['table1'].splice(3, 2);
+                        message['table1'].splice(4, 2);
                     }
                 }
 
@@ -870,6 +840,36 @@
 
 
         {% for observatory in observatories %}
+
+        document.getElementById('robotic-switch-{{ observatory }}').addEventListener('change', function () {
+
+            // add alert and confirm and improve styling
+            if (this.checked) {
+                if (confirm("Are you sure you want to turn ON the robotic switch?")) {
+                    // Code to run when the toggle is ON
+                    console.log('Toggle is ON');
+                    fetch('/api/roboticswitch/{{ observatory }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                        });
+                } else {
+                    this.checked = false; // Revert the toggle if canceled
+                }
+            } else {
+                if (confirm("Are you sure you want to turn OFF the robotic switch?")) {
+                    // Code to run when the toggle is OFF
+                    console.log('Toggle is OFF');
+                    fetch('/api/roboticswitch/{{ observatory }}')
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log(data);
+                        });
+                } else {
+                    this.checked = true; // Revert the toggle if canceled
+                }
+            }
+        });
 
         // connect to websockets
         if (window.location.protocol === "https:") {

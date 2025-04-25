@@ -1439,6 +1439,37 @@ class Observatory:
         else:
             return os.path.getmtime(self.schedule_path)
 
+    def toggle_robotic_switch(self) -> None:
+        """
+        Toggle the robotic switch on or off.
+
+        This method is used to control the robotic switch, which is responsible for managing
+        the observatory's robotic operations. It can be used to enable or disable the robotic
+        functionality as needed.
+
+        """
+        if self.robotic_switch:
+            self.robotic_switch = False
+            self.logger.info("Robotic switch turned off")
+            # stop schedule if running
+            self.stop_schedule()
+        else:
+            if self.watchdog_running is False:
+                self.logger.warning(
+                    "Robotic switch cannot be turned on without watchdog running"
+                )
+                return
+
+            self.robotic_switch = True
+            self.logger.info("Robotic switch turned on")
+
+            if self.schedule_running:
+                # stop schedule if running
+                self.stop_schedule()
+
+            # start schedule if not running
+            self.start_schedule()
+
     def start_schedule(self) -> None:
         """
         Start the schedule thread if it is not already running.
@@ -1462,6 +1493,12 @@ class Observatory:
         if self.schedule.iloc[-1]["end_time"] < datetime.now(UTC):
             self.logger.warning("Schedule end time in the past")
             return
+
+        # check schedule not in threads
+        for th in self.threads:
+            if th["type"] == "run_schedule":
+                self.logger.warning("Schedule currently running")
+                return
 
         # reset completed column on new start
         self.schedule["completed"] = False
