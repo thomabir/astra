@@ -168,7 +168,6 @@ async def get_video(request: Request, observatory, filename: str = None):
 
 @app.get("/api/heartbeat/{observatory}")
 async def heartbeat(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     return {"status": "success", "data": obs.heartbeat, "message": ""}
@@ -176,7 +175,6 @@ async def heartbeat(observatory: str):
 
 # @app.get("/api/open/{observatory}")
 # def open_observatory(observatory: str):
-#     observatory = observatory.lower()
 #     obs = OBSERVATORIES[observatory]
 
 #     obs.logger.info(f"User initiated opening of observatory from web interface")
@@ -188,7 +186,6 @@ async def heartbeat(observatory: str):
 
 @app.get("/api/close/{observatory}")
 def close_observatory(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated closing of observatory from web interface")
@@ -203,7 +200,6 @@ def close_observatory(observatory: str):
 
 @app.get("/api/cool_camera/{observatory}/{device_name}")
 def cool_camera(observatory: str, device_name: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     row = {"device_name": device_name}
@@ -234,7 +230,6 @@ def cool_camera(observatory: str, device_name: str):
 
 @app.get("/api/complete_headers/{observatory}")
 def cool_camera(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated completion of headers from web interface")
@@ -246,7 +241,6 @@ def cool_camera(observatory: str):
 
 @app.get("/api/startwatchdog/{observatory}")
 async def start_watchdog(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated starting of watchdog from web interface")
@@ -260,7 +254,6 @@ async def start_watchdog(observatory: str):
 
 @app.get("/api/stopwatchdog/{observatory}")
 async def stop_watchdog(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated stopping of watchdog from web interface")
@@ -272,7 +265,7 @@ async def stop_watchdog(observatory: str):
 
 @app.get("/api/roboticswitch/{observatory}")
 async def roboticswitch(observatory: str):
-    observatory = observatory.lower()
+
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated robotic switch from web interface")
@@ -284,7 +277,6 @@ async def roboticswitch(observatory: str):
 
 @app.get("/api/startschedule/{observatory}")
 async def start_schedule(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated starting of schedule from web interface")
@@ -296,7 +288,6 @@ async def start_schedule(observatory: str):
 
 @app.get("/api/stopschedule/{observatory}")
 async def stop_schedule(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
 
     obs.logger.info(f"User initiated stopping of schedule from web interface")
@@ -308,7 +299,6 @@ async def stop_schedule(observatory: str):
 
 @app.get("/api/schedule/{observatory}")
 async def schedule(observatory: str):
-    observatory = observatory.lower()
     obs = OBSERVATORIES[observatory]
     if obs.schedule_mtime != 0:
         schedule = obs.schedule
@@ -326,7 +316,6 @@ async def schedule(observatory: str):
 
 @app.get("/api/db/polling/{observatory}/{device_type}")
 async def polling(observatory: str, device_type: str, day: float = 1):
-    observatory = observatory.lower()
     db = observatory_db(observatory)
     q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > datetime('now', '-{day} day')"""
 
@@ -382,7 +371,6 @@ async def polling(observatory: str, device_type: str, day: float = 1):
 
 @app.get("/api/log/{observatory}")
 async def log(observatory: str, datetime: str):
-    observatory = observatory.lower()
     db = observatory_db(observatory)
     q = f"""SELECT * FROM (SELECT * FROM log WHERE datetime < '{datetime}' ORDER BY datetime DESC LIMIT 100) a ORDER BY datetime ASC"""
 
@@ -395,7 +383,6 @@ async def log(observatory: str, datetime: str):
 
 @app.websocket("/ws/log/{observatory}")
 async def websocket_log(websocket: WebSocket, observatory: str):
-    observatory = observatory.lower()
     await websocket.accept()
     obs = OBSERVATORIES[observatory]
 
@@ -444,7 +431,6 @@ async def websocket_log(websocket: WebSocket, observatory: str):
 
 @app.websocket("/ws/{observatory}")
 async def websocket_endpoint(websocket: WebSocket, observatory: str):
-    observatory = observatory.lower()
     global LAST_IMAGE, LAST_IMAGE_JPG, USEFUL_HEADERS
 
     await websocket.accept()
