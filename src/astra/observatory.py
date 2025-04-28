@@ -1530,7 +1530,6 @@ class Observatory:
             for th in self.threads:
                 if th["type"] == "run_schedule":
                     th["thread"].join()
-                    self.logger.info("Schedule stopped")
                     break
         else:
             self.logger.warning("Schedule not running")
