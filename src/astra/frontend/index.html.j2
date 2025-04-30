@@ -236,7 +236,7 @@
                     {% elif nav == 'Controls' %}
 
                     <div class="flex flex-col flex-grow place-content-center items-center my-auto">
-                        <div class="grid grid-cols-1 gap-4 md:w-2/6 my-4">
+                        <div class="grid grid-cols-1 gap-4 w-1/2 md:w-2/6 my-4">
 
                             <button
                                 class="text-white/50 text-sm font-medium rounded-xl aspect-square bg-gray-600/20 hover:bg-gray-700/20 px-5 py-2.5"
@@ -933,7 +933,7 @@
         // update weather chart
         setInterval(function () {
             updateWeatherChart('{{observatory}}', update = true);
-        }, 10000);
+        }, 30000);
 
         {% endfor %}
 
