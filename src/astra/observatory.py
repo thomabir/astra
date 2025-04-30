@@ -1591,8 +1591,7 @@ class Observatory:
                     )
 
                     # wait for thread to finish
-                    while (th.is_alive() is True) and self.check_conditions(row):
-                        time.sleep(1)
+                    th.join()
 
             # exit while loop if reached end of schedule
             if self.schedule.iloc[-1]["end_time"] < datetime.now(UTC):
