@@ -1201,7 +1201,7 @@ class Observatory:
                         self.speculoos_check_and_ack_error(close=True)
 
         if "Telescope" in self.config:
-            # stop telescope guiding and slewing
+            # telescope guiding and slewing
             if paired_devices is not None:
                 try:
                     if self.guider[paired_devices["Telescope"]].running:
@@ -2255,7 +2255,6 @@ class Observatory:
                 
         # Stop telescope tracking
         if "Telescope" in paired_devices:
-            self.logger.info(f"Stopping telescope tracking for {paired_devices['Telescope']}")
             self.monitor_action(
                 "Telescope",
                 "Tracking",
