@@ -318,9 +318,15 @@ async def schedule(observatory: str):
 
 
 @app.get("/api/db/polling/{observatory}/{device_type}")
-async def polling(observatory: str, device_type: str, day: float = 1):
+async def polling(
+    observatory: str, device_type: str, day: float = 1, since: str = None
+):
     db = observatory_db(observatory)
-    q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > datetime('now', '-{day} day')"""
+    if since:
+        # Only fetch new records since the given timestamp
+        q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > '{since}'"""
+    else:
+        q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > datetime('now', '-{day} day')"""
 
     df = pd.read_sql_query(q, db)
     db.close()

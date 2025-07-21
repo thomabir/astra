@@ -524,42 +524,85 @@
         }
 
         let mousePos = { x: 0, y: 0 };
+        let weatherDataCache = {};
+        let weatherLatestTimestamp = {};
         function updateWeatherChart(observatory, update = false) {
-
-            fetch('/api/db/polling/' + observatory + '/ObservingConditions?day=3')
-                .then(response => response.json())
-                .then(data => {
-                    plotWeather(data, observatory, update);
-                })
-                .then(() => {
-
-                    // for event listeners on all plots
-                    const plots = document.querySelectorAll('div[id^="plot-"]');
-
-                    plots.forEach((plot) => {
-                        // when user takes finger off the screen
-                        if (update == false) {
-                            plot.addEventListener("touchend", (event) => {
-                                // clear the tooltip -- needed for mobile UX
-                                const pointerleave = new PointerEvent("pointerleave", {
+            // On first load, fetch all data
+            if (!weatherDataCache[observatory] || !update) {
+                fetch('/api/db/polling/' + observatory + '/ObservingConditions?day=3')
+                    .then(response => response.json())
+                    .then(data => {
+                        weatherDataCache[observatory] = data;
+                        // Find latest timestamp
+                        if (data.data && data.data.length > 0) {
+                            weatherLatestTimestamp[observatory] = data.data[data.data.length - 1].datetime;
+                        }
+                        plotWeather(data, observatory, update);
+                    })
+                    .then(() => {
+                        // for event listeners on all plots
+                        const plots = document.querySelectorAll('div[id^="plot-"]');
+                        plots.forEach((plot) => {
+                            if (update == false) {
+                                plot.addEventListener("touchend", (event) => {
+                                    const pointerleave = new PointerEvent("pointerleave", {
+                                        bubbles: true,
+                                        pointerType: "mouse",
+                                    });
+                                    event.target.dispatchEvent(pointerleave);
+                                });
+                                plot.addEventListener("pointermove", (event) => {
+                                    const x = event.clientX;
+                                    const y = event.clientY;
+                                    mousePos = { x, y };
+                                });
+                            } else {
+                                const plotDiv = plot.querySelector('svg');
+                                const pointermove = new PointerEvent("pointermove", {
                                     bubbles: true,
                                     pointerType: "mouse",
+                                    clientX: mousePos.x,
+                                    clientY: mousePos.y,
                                 });
-                                event.target.dispatchEvent(pointerleave);
-                            });
-                            plot.addEventListener("pointermove", (event) => {
-
-                                // get the x and y position of the pointer
-                                const x = event.clientX;
-                                const y = event.clientY;
-                                mousePos = { x, y };
-
-                            });
-                        } else {
-                            // get child div of plot
+                                plotDiv.dispatchEvent(pointermove);
+                            }
+                        });
+                    });
+            } else {
+                // On update, fetch only new data since last timestamp
+                let since = weatherLatestTimestamp[observatory];
+                // Ensure format is 'YYYY-MM-DD HH:MM:SS' (replace T with space if present)
+                if (since && since.includes('T')) {
+                    since = since.replace('T', ' ');
+                }
+                fetch('/api/db/polling/' + observatory + '/ObservingConditions?since=' + encodeURIComponent(since))
+                    .then(response => response.json())
+                    .then(newData => {
+                        // Merge new data, replacing last point if overlapping (binned per minute)
+                        if (newData.data && newData.data.length > 0) {
+                            let cached = weatherDataCache[observatory].data;
+                            let newFirst = newData.data[0];
+                            if (cached.length > 0 && cached[cached.length - 1].datetime === newFirst.datetime) {
+                                // Replace last cached point with new one
+                                cached[cached.length - 1] = newFirst;
+                                // Append any additional new points
+                                if (newData.data.length > 1) {
+                                    cached = cached.concat(newData.data.slice(1));
+                                }
+                                weatherDataCache[observatory].data = cached;
+                            } else {
+                                weatherDataCache[observatory].data = cached.concat(newData.data);
+                            }
+                            weatherDataCache[observatory].latest = newData.latest;
+                            weatherLatestTimestamp[observatory] = newData.data[newData.data.length - 1].datetime;
+                        }
+                        // Use merged data for plotting
+                        plotWeather(weatherDataCache[observatory], observatory, update);
+                    })
+                    .then(() => {
+                        const plots = document.querySelectorAll('div[id^="plot-"]');
+                        plots.forEach((plot) => {
                             const plotDiv = plot.querySelector('svg');
-
-                            // simulate pointermove event to update tooltip
                             const pointermove = new PointerEvent("pointermove", {
                                 bubbles: true,
                                 pointerType: "mouse",
@@ -567,11 +610,9 @@
                                 clientY: mousePos.y,
                             });
                             plotDiv.dispatchEvent(pointermove);
-                        }
+                        });
                     });
-
-                });
-
+            }
         }
 
         function closeObservatory(observatory) {
