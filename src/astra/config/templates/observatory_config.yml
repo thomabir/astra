@@ -24,6 +24,7 @@ Focuser:
   - device_name: focuser_observatoryname
     ip: localhost
     device_number: 0
+    focus_position: 10000
 Camera:
   - device_name: camera_observatoryname
     ip: localhost
