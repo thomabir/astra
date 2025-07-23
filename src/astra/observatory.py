@@ -2942,6 +2942,7 @@ class Observatory:
         # update header
         hdr["IMAGETYP"] = "Light Frame"
         hdr["OBJECT"] = "Pointing Model"
+        action_value["object"] = "Pointing Model"
 
         # open dome and unpark telescope
         self.open_observatory(paired_devices)
