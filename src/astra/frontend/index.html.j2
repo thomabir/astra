@@ -47,13 +47,13 @@
 
             {# title #}
             <div class="flex flex-row flex-initial text-3xl font-bold align-bottom">
-                <div class="flex-initial justify-left">
-                    <div id="title--{{ observatory }}">
+                <div class="flex-1 min-w-0 justify-left">
+                    <div id="title--{{ observatory }}" class="truncate" title="{{ observatory }}">
                         {{ observatory }}
                     </div>
                 </div>
 
-                <div class="grow">
+                <div class="flex-shrink-0">
                     <div class="flex flex-row-reverse h-full items-center">
 
                         <label for="robotic-switch--{{ observatory }}" class="flex items-center cursor-pointer m-2">
@@ -312,6 +312,16 @@
             console.log('callback - particles.js config loaded');
         });
 
+        // Handle window resize for particles.js
+        window.addEventListener('resize', function () {
+            // Debounce resize events to avoid too many calls
+            clearTimeout(window.resizeTimeout);
+            window.resizeTimeout = setTimeout(function () {
+                // Reload particles.js on resize
+                particlesJS.load('particles-js', '/js/particlesjs-config.json');
+            }, 100);
+        });
+
         const popup = document.querySelector('#popup');
 
         let scheduleLoadTime = {}
@@ -403,7 +413,10 @@
             let div = document.getElementById("content--" + element.id.split("--")[1])
             if (element.id.split("--")[0] == 'log') {
                 let divLog = document.getElementById("log-0--" + element.id.split("--")[1] + "-parent");
-                divLog.scrollTop = divLog.scrollHeight;
+                // Use setTimeout to ensure the content is fully rendered before scrolling
+                setTimeout(() => {
+                    divLog.scrollTop = divLog.scrollHeight;
+                }, 0);
             } else {
                 div.scrollTop = 0;
             }
