@@ -2403,16 +2403,18 @@ class Observatory:
             )
             defocuser.refocus()
 
-        if "bin" in action_value:
-            if "Camera" in paired_devices:
-                camera = paired_devices.camera
-                self.logger.info(
-                    f"Setting Camera {paired_devices['Camera']} binning to {action_value['bin']}"
-                )
-                camera.set("BinX", action_value["bin"])
-                camera.set("BinY", action_value["bin"])
-                camera.set("NumX", camera.get("CameraXSize") // camera.get("BinX"))
-                camera.set("NumY", camera.get("CameraYSize") // camera.get("BinY"))
+        if "Camera" in paired_devices:
+            camera = paired_devices.camera
+            bin = action_value.get("bin", 1)
+
+            self.logger.info(
+                f"Setting Camera {paired_devices['Camera']} binning to {bin}x{bin}"
+            )
+
+            camera.set("BinX", bin)
+            camera.set("BinY", bin)
+            camera.set("NumX", camera.get("CameraXSize") // camera.get("BinX"))
+            camera.set("NumY", camera.get("CameraYSize") // camera.get("BinY"))
 
     def wait_for_slew(self, paired_devices: PairedDevices) -> None:
         """
