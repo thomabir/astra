@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union
 
 import pandas as pd
+import json
 
 from astra import Config
 
@@ -114,6 +115,16 @@ def process_schedule(
     # 1. read schedule and convert to a DataFrame
     if schedule_path.suffix == ".csv":
         schedule = pd.read_csv(schedule_path)
+    elif schedule_path.suffix == ".jsonl":
+        data = []
+        with open(schedule_path, "r") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("//"):
+                    continue
+                obj = json.loads(line)
+                data.append(obj)
+        schedule = pd.DataFrame(data)
     else:
         raise ValueError(f"Unsupported file format: {schedule_path.suffix}")
 

@@ -223,6 +223,7 @@ class Observatory:
 
         # schedule
         self.schedule_path = CONFIG.paths.schedules / f"{self.name}.csv"
+        # self.schedule_path = CONFIG.paths.schedules / f"{self.name}.jsonl" # TODO: change to this in future
         self.schedule_mtime = self.get_schedule_mtime()
         self.schedule = None
         if self.schedule_mtime != 0:
