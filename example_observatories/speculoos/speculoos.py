@@ -17,7 +17,6 @@ class SPECULOOS(Observatory):
         super().__init__(
             config, truncate_factor=truncate_factor, logging_level=logging_level
         )
-        self.speculoos = True  # Flag to indicate SPECULOOS observatory
 
     def close_observatory(
         self, paired_devices: PairedDevices | None = None, error_sensitive: bool = True
@@ -53,17 +52,15 @@ class SPECULOOS(Observatory):
             - Critical for protecting equipment during unsafe weather conditions
         """
 
-        if self.speculoos:
-            # SPECULOOS EDIT
-            self.device_manager.pause_polls(["Dome", "Telescope", "Focuser"])
+        self.device_manager.pause_polls(["Dome", "Telescope", "Focuser"])
 
-            # acknowledge errors if dome not closed, if any
-            dome_names = self.device_manager.list_device_names("Dome", paired_devices)
-            for dome_name in dome_names:
-                dome = self.devices["Dome"][dome_name]
-                ShutterStatus = dome.get("ShutterStatus")
-                if ShutterStatus == 0:  # open
-                    self.speculoos_check_and_ack_error(close=True)
+        # acknowledge errors if dome not closed, if any
+        dome_names = self.device_manager.list_device_names("Dome", paired_devices)
+        for dome_name in dome_names:
+            dome = self.devices["Dome"][dome_name]
+            ShutterStatus = dome.get("ShutterStatus")
+            if ShutterStatus == 0:  # open
+                self.speculoos_check_and_ack_error(close=True)
 
         all_telescopes_parked = super().close_observatory(
             paired_devices=paired_devices, error_sensitive=error_sensitive
