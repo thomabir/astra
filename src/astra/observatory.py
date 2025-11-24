@@ -3123,7 +3123,13 @@ class Observatory:
                 if r is True:
                     arr = camera.get("ImageArray")
                     median_adu = np.nanmedian(arr)
-                    fraction = (median_adu - offset) / (target_adu[0] - offset)
+
+                    if median_adu <= offset:
+                        fraction = 0.01
+                    else:
+                        fraction = (median_adu - offset) / (target_adu[0] - offset)
+                        if fraction <= 0:
+                            fraction = 0.01
 
                     sun_rising, take_flats, sun_altaz = utils.is_sun_rising(
                         obs_location
