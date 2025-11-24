@@ -1,0 +1,1574 @@
+[
+  {
+    "name": "Sirius",
+    "ra": 101.25,
+    "dec": -16.7,
+    "mag": -1.46
+  },
+  {
+    "name": "Canopus",
+    "ra": 96.0,
+    "dec": -52.7,
+    "mag": -0.73
+  },
+  {
+    "name": "Rigil Kentaurus",
+    "ra": 220.0,
+    "dec": -60.8,
+    "mag": -0.29
+  },
+  {
+    "name": "Arcturus",
+    "ra": 214.0,
+    "dec": 19.2,
+    "mag": -0.05
+  },
+  {
+    "name": "Vega",
+    "ra": 279.25,
+    "dec": 38.8,
+    "mag": 0.03
+  },
+  {
+    "name": "Capella",
+    "ra": 79.25,
+    "dec": 46.0,
+    "mag": 0.07
+  },
+  {
+    "name": "Rigel",
+    "ra": 78.75,
+    "dec": -8.2,
+    "mag": 0.15
+  },
+  {
+    "name": "Procyon",
+    "ra": 114.75,
+    "dec": 5.2,
+    "mag": 0.36
+  },
+  {
+    "name": "Achernar",
+    "ra": 24.5,
+    "dec": -57.2,
+    "mag": 0.45
+  },
+  {
+    "name": "Betelgeuse",
+    "ra": 88.75,
+    "dec": 7.4,
+    "mag": 0.55
+  },
+  {
+    "name": "Hadar",
+    "ra": 211.0,
+    "dec": -60.4,
+    "mag": 0.61
+  },
+  {
+    "name": "Altair",
+    "ra": 297.75,
+    "dec": 8.9,
+    "mag": 0.77
+  },
+  {
+    "name": "Acrux",
+    "ra": 186.75,
+    "dec": -63.1,
+    "mag": 0.79
+  },
+  {
+    "name": "Aldebaran",
+    "ra": 69.0,
+    "dec": 16.5,
+    "mag": 0.86
+  },
+  {
+    "name": "Antares",
+    "ra": 247.25,
+    "dec": -26.4,
+    "mag": 0.95
+  },
+  {
+    "name": "Spica",
+    "ra": 201.25,
+    "dec": -11.2,
+    "mag": 0.97
+  },
+  {
+    "name": "Pollux",
+    "ra": 116.25,
+    "dec": 28.0,
+    "mag": 1.14
+  },
+  {
+    "name": "Fomalhaut",
+    "ra": 344.5,
+    "dec": -29.6,
+    "mag": 1.15
+  },
+  {
+    "name": "Deneb",
+    "ra": 310.25,
+    "dec": 45.3,
+    "mag": 1.24
+  },
+  {
+    "name": "Mimosa",
+    "ra": 192.0,
+    "dec": -59.7,
+    "mag": 1.26
+  },
+  {
+    "name": "Regulus",
+    "ra": 152.0,
+    "dec": 12.0,
+    "mag": 1.36
+  },
+  {
+    "name": "Adhara",
+    "ra": 104.75,
+    "dec": -29.0,
+    "mag": 1.5
+  },
+  {
+    "name": "Castor",
+    "ra": 113.75,
+    "dec": 31.9,
+    "mag": 1.58
+  },
+  {
+    "name": "Shaula",
+    "ra": 263.5,
+    "dec": -37.1,
+    "mag": 1.62
+  },
+  {
+    "name": "Gacrux",
+    "ra": 187.75,
+    "dec": -57.1,
+    "mag": 1.63
+  },
+  {
+    "name": "Bellatrix",
+    "ra": 81.25,
+    "dec": 6.3,
+    "mag": 1.64
+  },
+  {
+    "name": "Elnath",
+    "ra": 81.5,
+    "dec": 28.6,
+    "mag": 1.66
+  },
+  {
+    "name": "Miaplacidus",
+    "ra": 138.25,
+    "dec": -69.7,
+    "mag": 1.67
+  },
+  {
+    "name": "Alnilam",
+    "ra": 84.0,
+    "dec": -1.2,
+    "mag": 1.69
+  },
+  {
+    "name": "Alnair",
+    "ra": 332.0,
+    "dec": -47.0,
+    "mag": 1.74
+  },
+  {
+    "name": "Alnitak",
+    "ra": 85.25,
+    "dec": -1.9,
+    "mag": 1.75
+  },
+  {
+    "name": "Alioth",
+    "ra": 193.5,
+    "dec": 56.0,
+    "mag": 1.77
+  },
+  {
+    "name": "Mirfak",
+    "ra": 51.0,
+    "dec": 49.9,
+    "mag": 1.8
+  },
+  {
+    "name": "Dubhe",
+    "ra": 166.0,
+    "dec": 61.8,
+    "mag": 1.8
+  },
+  {
+    "name": "Regor",
+    "ra": 122.5,
+    "dec": -47.3,
+    "mag": 1.81
+  },
+  {
+    "name": "Wezen",
+    "ra": 107.0,
+    "dec": -26.4,
+    "mag": 1.83
+  },
+  {
+    "name": "Kaus Australis",
+    "ra": 276.0,
+    "dec": -34.4,
+    "mag": 1.84
+  },
+  {
+    "name": "Alkaid",
+    "ra": 207.0,
+    "dec": 49.3,
+    "mag": 1.86
+  },
+  {
+    "name": "Sargas",
+    "ra": 264.25,
+    "dec": -43.0,
+    "mag": 1.86
+  },
+  {
+    "name": "Avior",
+    "ra": 125.75,
+    "dec": -59.5,
+    "mag": 1.87
+  },
+  {
+    "name": "Menkalinan",
+    "ra": 90.0,
+    "dec": 44.9,
+    "mag": 1.9
+  },
+  {
+    "name": "Atria",
+    "ra": 252.25,
+    "dec": -69.0,
+    "mag": 1.92
+  },
+  {
+    "name": "Alhena",
+    "ra": 99.5,
+    "dec": 16.4,
+    "mag": 1.93
+  },
+  {
+    "name": "Peacock",
+    "ra": 306.5,
+    "dec": -56.7,
+    "mag": 1.93
+  },
+  {
+    "name": "Koo She",
+    "ra": 131.25,
+    "dec": -54.7,
+    "mag": 1.95
+  },
+  {
+    "name": "Mirzam",
+    "ra": 95.75,
+    "dec": -18.0,
+    "mag": 1.98
+  },
+  {
+    "name": "Alphard",
+    "ra": 142.0,
+    "dec": -8.7,
+    "mag": 1.98
+  },
+  {
+    "name": "Polaris",
+    "ra": 38.0,
+    "dec": 89.3,
+    "mag": 1.99
+  },
+  {
+    "name": "Algieba",
+    "ra": 155.0,
+    "dec": 19.8,
+    "mag": 2.0
+  },
+  {
+    "name": "Hamal",
+    "ra": 31.75,
+    "dec": 23.5,
+    "mag": 2.01
+  },
+  {
+    "name": "Diphda",
+    "ra": 11.0,
+    "dec": -18.0,
+    "mag": 2.04
+  },
+  {
+    "name": "Nunki",
+    "ra": 283.75,
+    "dec": -26.3,
+    "mag": 2.05
+  },
+  {
+    "name": "Menkent",
+    "ra": 211.75,
+    "dec": -36.4,
+    "mag": 2.06
+  },
+  {
+    "name": "Alpheratz",
+    "ra": 2.0,
+    "dec": 29.1,
+    "mag": 2.07
+  },
+  {
+    "name": "Mirach",
+    "ra": 17.5,
+    "dec": 35.6,
+    "mag": 2.07
+  },
+  {
+    "name": "Saiph",
+    "ra": 87.0,
+    "dec": -9.7,
+    "mag": 2.07
+  },
+  {
+    "name": "Kochab",
+    "ra": 222.75,
+    "dec": 74.2,
+    "mag": 2.07
+  },
+  {
+    "name": "Al Dhanab",
+    "ra": 340.75,
+    "dec": -46.9,
+    "mag": 2.07
+  },
+  {
+    "name": "Rasalhague",
+    "ra": 263.75,
+    "dec": 12.6,
+    "mag": 2.08
+  },
+  {
+    "name": "Algol",
+    "ra": 47.0,
+    "dec": 41.0,
+    "mag": 2.09
+  },
+  {
+    "name": "Almach",
+    "ra": 31.0,
+    "dec": 42.3,
+    "mag": 2.1
+  },
+  {
+    "name": "Denebola",
+    "ra": 177.25,
+    "dec": 14.6,
+    "mag": 2.14
+  },
+  {
+    "name": "Cih",
+    "ra": 14.25,
+    "dec": 60.7,
+    "mag": 2.15
+  },
+  {
+    "name": "Muhlifain",
+    "ra": 190.5,
+    "dec": -49.0,
+    "mag": 2.2
+  },
+  {
+    "name": "Naos",
+    "ra": 121.0,
+    "dec": -40.0,
+    "mag": 2.21
+  },
+  {
+    "name": "Aspidiske",
+    "ra": 139.25,
+    "dec": -59.3,
+    "mag": 2.21
+  },
+  {
+    "name": "Alphecca",
+    "ra": 233.75,
+    "dec": 26.7,
+    "mag": 2.22
+  },
+  {
+    "name": "Suhail",
+    "ra": 137.0,
+    "dec": -43.4,
+    "mag": 2.23
+  },
+  {
+    "name": "Mizar",
+    "ra": 201.0,
+    "dec": 54.9,
+    "mag": 2.23
+  },
+  {
+    "name": "Sadr",
+    "ra": 305.5,
+    "dec": 40.3,
+    "mag": 2.23
+  },
+  {
+    "name": "Schedar",
+    "ra": 10.25,
+    "dec": 56.5,
+    "mag": 2.24
+  },
+  {
+    "name": "Eltanin",
+    "ra": 269.25,
+    "dec": 51.5,
+    "mag": 2.24
+  },
+  {
+    "name": "Mintaka",
+    "ra": 83.0,
+    "dec": -0.3,
+    "mag": 2.25
+  },
+  {
+    "name": "Caph",
+    "ra": 2.25,
+    "dec": 59.2,
+    "mag": 2.28
+  },
+  {
+    "name": "Epsilon Centauri",
+    "ra": 205.0,
+    "dec": -53.5,
+    "mag": 2.29
+  },
+  {
+    "name": "Dschubba",
+    "ra": 240.0,
+    "dec": -22.6,
+    "mag": 2.29
+  },
+  {
+    "name": "Wei",
+    "ra": 252.5,
+    "dec": -34.3,
+    "mag": 2.29
+  },
+  {
+    "name": "Men",
+    "ra": 220.5,
+    "dec": -47.4,
+    "mag": 2.3
+  },
+  {
+    "name": "Eta Centauri",
+    "ra": 219.0,
+    "dec": -42.2,
+    "mag": 2.33
+  },
+  {
+    "name": "Merak",
+    "ra": 165.5,
+    "dec": 56.4,
+    "mag": 2.34
+  },
+  {
+    "name": "Izar",
+    "ra": 221.25,
+    "dec": 27.1,
+    "mag": 2.35
+  },
+  {
+    "name": "Enif",
+    "ra": 326.0,
+    "dec": 9.9,
+    "mag": 2.38
+  },
+  {
+    "name": "Girtab",
+    "ra": 265.5,
+    "dec": -39.0,
+    "mag": 2.39
+  },
+  {
+    "name": "Ankaa",
+    "ra": 6.5,
+    "dec": -42.3,
+    "mag": 2.4
+  },
+  {
+    "name": "Phecda",
+    "ra": 178.5,
+    "dec": 53.7,
+    "mag": 2.41
+  },
+  {
+    "name": "Sabik",
+    "ra": 257.5,
+    "dec": -15.7,
+    "mag": 2.43
+  },
+  {
+    "name": "Scheat",
+    "ra": 346.0,
+    "dec": 28.1,
+    "mag": 2.44
+  },
+  {
+    "name": "Aludra",
+    "ra": 111.0,
+    "dec": -29.3,
+    "mag": 2.45
+  },
+  {
+    "name": "Alderamin",
+    "ra": 319.75,
+    "dec": 62.6,
+    "mag": 2.45
+  },
+  {
+    "name": "Markeb",
+    "ra": 140.5,
+    "dec": -55.0,
+    "mag": 2.47
+  },
+  {
+    "name": "Gienah",
+    "ra": 311.5,
+    "dec": 34.0,
+    "mag": 2.48
+  },
+  {
+    "name": "Markab",
+    "ra": 346.25,
+    "dec": 15.2,
+    "mag": 2.49
+  },
+  {
+    "name": "Menkar",
+    "ra": 45.5,
+    "dec": 4.1,
+    "mag": 2.54
+  },
+  {
+    "name": "Han",
+    "ra": 249.25,
+    "dec": -10.6,
+    "mag": 2.54
+  },
+  {
+    "name": "Al Nair al Kent.",
+    "ra": 209.0,
+    "dec": -47.3,
+    "mag": 2.55
+  },
+  {
+    "name": "Zosma",
+    "ra": 168.5,
+    "dec": 20.5,
+    "mag": 2.56
+  },
+  {
+    "name": "Graffias",
+    "ra": 241.25,
+    "dec": -19.8,
+    "mag": 2.56
+  },
+  {
+    "name": "Arneb",
+    "ra": 83.25,
+    "dec": -17.8,
+    "mag": 2.58
+  },
+  {
+    "name": "Delta Centauri",
+    "ra": 182.0,
+    "dec": -50.7,
+    "mag": 2.58
+  },
+  {
+    "name": "Gienah Ghurab",
+    "ra": 184.0,
+    "dec": -17.5,
+    "mag": 2.58
+  },
+  {
+    "name": "Ascella",
+    "ra": 285.75,
+    "dec": -29.9,
+    "mag": 2.6
+  },
+  {
+    "name": "Zubeneschamali",
+    "ra": 229.25,
+    "dec": -9.4,
+    "mag": 2.61
+  },
+  {
+    "name": "Unukalhai",
+    "ra": 236.0,
+    "dec": 6.4,
+    "mag": 2.63
+  },
+  {
+    "name": "Sheratan",
+    "ra": 28.75,
+    "dec": 20.8,
+    "mag": 2.64
+  },
+  {
+    "name": "Zubenelgenubi",
+    "ra": 222.75,
+    "dec": -16.0,
+    "mag": 2.64
+  },
+  {
+    "name": "Phact",
+    "ra": 85.0,
+    "dec": -34.1,
+    "mag": 2.65
+  },
+  {
+    "name": "Theta Aurigae",
+    "ra": 90.0,
+    "dec": 37.2,
+    "mag": 2.65
+  },
+  {
+    "name": "Kraz",
+    "ra": 188.5,
+    "dec": -23.4,
+    "mag": 2.65
+  },
+  {
+    "name": "Ruchbah",
+    "ra": 21.5,
+    "dec": 60.2,
+    "mag": 2.66
+  },
+  {
+    "name": "Muphrid",
+    "ra": 208.75,
+    "dec": 18.4,
+    "mag": 2.68
+  },
+  {
+    "name": "Ke Kouan",
+    "ra": 224.75,
+    "dec": -43.1,
+    "mag": 2.68
+  },
+  {
+    "name": "Hassaleh",
+    "ra": 74.25,
+    "dec": 33.2,
+    "mag": 2.69
+  },
+  {
+    "name": "Mu Velorum",
+    "ra": 161.75,
+    "dec": -49.4,
+    "mag": 2.69
+  },
+  {
+    "name": "Alpha Muscae",
+    "ra": 189.25,
+    "dec": -69.1,
+    "mag": 2.69
+  },
+  {
+    "name": "Lesath",
+    "ra": 262.75,
+    "dec": -37.3,
+    "mag": 2.7
+  },
+  {
+    "name": "Pi Puppis",
+    "ra": 109.25,
+    "dec": -37.1,
+    "mag": 2.71
+  },
+  {
+    "name": "Kaus Meridionalis",
+    "ra": 275.25,
+    "dec": -29.8,
+    "mag": 2.72
+  },
+  {
+    "name": "Tarazed",
+    "ra": 296.5,
+    "dec": 10.6,
+    "mag": 2.72
+  },
+  {
+    "name": "Yed Prior",
+    "ra": 243.5,
+    "dec": -3.7,
+    "mag": 2.73
+  },
+  {
+    "name": "Aldhibain",
+    "ra": 246.0,
+    "dec": 61.5,
+    "mag": 2.73
+  },
+  {
+    "name": "Theta Carinae",
+    "ra": 160.75,
+    "dec": -64.4,
+    "mag": 2.74
+  },
+  {
+    "name": "Porrima",
+    "ra": 190.5,
+    "dec": -1.5,
+    "mag": 2.74
+  },
+  {
+    "name": "Hatysa",
+    "ra": 83.75,
+    "dec": -5.9,
+    "mag": 2.75
+  },
+  {
+    "name": "Iota Centauri",
+    "ra": 200.25,
+    "dec": -36.7,
+    "mag": 2.75
+  },
+  {
+    "name": "Cebalrai",
+    "ra": 265.75,
+    "dec": 4.6,
+    "mag": 2.76
+  },
+  {
+    "name": "Kursa",
+    "ra": 77.0,
+    "dec": -5.1,
+    "mag": 2.78
+  },
+  {
+    "name": "Kornephoros",
+    "ra": 247.5,
+    "dec": 21.5,
+    "mag": 2.78
+  },
+  {
+    "name": "Delta Crucis",
+    "ra": 183.75,
+    "dec": -58.7,
+    "mag": 2.79
+  },
+  {
+    "name": "Rastaban",
+    "ra": 262.5,
+    "dec": 52.3,
+    "mag": 2.79
+  },
+  {
+    "name": "Cor Caroli",
+    "ra": 194.0,
+    "dec": 38.3,
+    "mag": 2.8
+  },
+  {
+    "name": "Gamma Lupi",
+    "ra": 233.75,
+    "dec": -41.2,
+    "mag": 2.8
+  },
+  {
+    "name": "Nihal",
+    "ra": 82.0,
+    "dec": -20.8,
+    "mag": 2.81
+  },
+  {
+    "name": "Rutilicus",
+    "ra": 250.25,
+    "dec": 31.6,
+    "mag": 2.81
+  },
+  {
+    "name": "Beta Hydri",
+    "ra": 6.5,
+    "dec": -77.3,
+    "mag": 2.82
+  },
+  {
+    "name": "Tau Scorpii",
+    "ra": 249.0,
+    "dec": -28.2,
+    "mag": 2.82
+  },
+  {
+    "name": "Kaus Borealis",
+    "ra": 277.0,
+    "dec": -25.4,
+    "mag": 2.82
+  },
+  {
+    "name": "Algenib",
+    "ra": 3.25,
+    "dec": 15.2,
+    "mag": 2.83
+  },
+  {
+    "name": "Turais",
+    "ra": 122.0,
+    "dec": -24.3,
+    "mag": 2.83
+  },
+  {
+    "name": "Beta Trianguli Australis",
+    "ra": 238.75,
+    "dec": -63.4,
+    "mag": 2.83
+  },
+  {
+    "name": "Zeta Persei",
+    "ra": 58.5,
+    "dec": 31.9,
+    "mag": 2.84
+  },
+  {
+    "name": "Beta Arae",
+    "ra": 266.25,
+    "dec": -55.5,
+    "mag": 2.84
+  },
+  {
+    "name": "Choo",
+    "ra": 263.0,
+    "dec": -49.9,
+    "mag": 2.84
+  },
+  {
+    "name": "Alcyone",
+    "ra": 56.75,
+    "dec": 24.1,
+    "mag": 2.85
+  },
+  {
+    "name": "Vindemiatrix",
+    "ra": 195.5,
+    "dec": 11.0,
+    "mag": 2.85
+  },
+  {
+    "name": "Deneb Algedi",
+    "ra": 326.75,
+    "dec": -16.1,
+    "mag": 2.85
+  },
+  {
+    "name": "Head of Hydrus",
+    "ra": 29.75,
+    "dec": -61.6,
+    "mag": 2.86
+  },
+  {
+    "name": "Delta Cygni",
+    "ra": 296.25,
+    "dec": 45.1,
+    "mag": 2.86
+  },
+  {
+    "name": "Tejat",
+    "ra": 95.75,
+    "dec": 22.5,
+    "mag": 2.87
+  },
+  {
+    "name": "Gamma Trianguli Australis",
+    "ra": 229.75,
+    "dec": -68.7,
+    "mag": 2.87
+  },
+  {
+    "name": "Alpha Tucanae",
+    "ra": 334.75,
+    "dec": -60.3,
+    "mag": 2.87
+  },
+  {
+    "name": "Acamar",
+    "ra": 44.5,
+    "dec": -40.3,
+    "mag": 2.88
+  },
+  {
+    "name": "Albaldah",
+    "ra": 287.5,
+    "dec": -21.0,
+    "mag": 2.88
+  },
+  {
+    "name": "Gomeisa",
+    "ra": 109.25,
+    "dec": 8.3,
+    "mag": 2.89
+  },
+  {
+    "name": "Pi Scorpii",
+    "ra": 239.75,
+    "dec": -26.1,
+    "mag": 2.89
+  },
+  {
+    "name": "Epsilon Persei",
+    "ra": 59.5,
+    "dec": 40.0,
+    "mag": 2.9
+  },
+  {
+    "name": "Alniyat",
+    "ra": 245.25,
+    "dec": -25.6,
+    "mag": 2.9
+  },
+  {
+    "name": "Albireo",
+    "ra": 292.75,
+    "dec": 28.0,
+    "mag": 2.9
+  },
+  {
+    "name": "Sadalsuud",
+    "ra": 323.0,
+    "dec": -5.6,
+    "mag": 2.9
+  },
+  {
+    "name": "Gamma Persei",
+    "ra": 46.25,
+    "dec": 53.5,
+    "mag": 2.91
+  },
+  {
+    "name": "Upsilon Carinae",
+    "ra": 146.75,
+    "dec": -65.1,
+    "mag": 2.92
+  },
+  {
+    "name": "Matar",
+    "ra": 340.75,
+    "dec": 30.2,
+    "mag": 2.93
+  },
+  {
+    "name": "Tau Puppis",
+    "ra": 102.5,
+    "dec": -50.6,
+    "mag": 2.94
+  },
+  {
+    "name": "Algorel",
+    "ra": 187.5,
+    "dec": -16.5,
+    "mag": 2.94
+  },
+  {
+    "name": "Sadalmelik",
+    "ra": 331.5,
+    "dec": -0.3,
+    "mag": 2.95
+  },
+  {
+    "name": "Zaurak",
+    "ra": 59.5,
+    "dec": -13.5,
+    "mag": 2.97
+  },
+  {
+    "name": "Alheka",
+    "ra": 84.5,
+    "dec": 21.1,
+    "mag": 2.97
+  },
+  {
+    "name": "Ras Elased Austr.",
+    "ra": 146.5,
+    "dec": 23.8,
+    "mag": 2.97
+  },
+  {
+    "name": "Alnasl",
+    "ra": 271.5,
+    "dec": -30.4,
+    "mag": 2.98
+  },
+  {
+    "name": "Gamma Hydrae",
+    "ra": 199.75,
+    "dec": -23.2,
+    "mag": 2.99
+  },
+  {
+    "name": "Iota¹ Scorpii",
+    "ra": 267.0,
+    "dec": -40.1,
+    "mag": 2.99
+  },
+  {
+    "name": "Deneb el Okab",
+    "ra": 286.25,
+    "dec": 13.9,
+    "mag": 2.99
+  },
+  {
+    "name": "Beta Trianguli",
+    "ra": 32.5,
+    "dec": 35.0,
+    "mag": 3.0
+  },
+  {
+    "name": "Psi Ursae Majoris",
+    "ra": 167.5,
+    "dec": 44.5,
+    "mag": 3.0
+  },
+  {
+    "name": "Pherkad Major",
+    "ra": 230.25,
+    "dec": 71.8,
+    "mag": 3.0
+  },
+  {
+    "name": "Mu¹ Scorpii",
+    "ra": 253.0,
+    "dec": -38.0,
+    "mag": 3.0
+  },
+  {
+    "name": "Gamma Gruis",
+    "ra": 328.5,
+    "dec": -37.4,
+    "mag": 3.0
+  },
+  {
+    "name": "Delta Persei",
+    "ra": 55.75,
+    "dec": 47.8,
+    "mag": 3.01
+  },
+  {
+    "name": "Phurad",
+    "ra": 95.0,
+    "dec": -30.1,
+    "mag": 3.02
+  },
+  {
+    "name": "Omicron² Canis Majoris",
+    "ra": 105.75,
+    "dec": -23.8,
+    "mag": 3.02
+  },
+  {
+    "name": "Minkar",
+    "ra": 182.5,
+    "dec": -22.6,
+    "mag": 3.02
+  },
+  {
+    "name": "Almaaz",
+    "ra": 75.5,
+    "dec": 43.8,
+    "mag": 3.03
+  },
+  {
+    "name": "Beta Muscae",
+    "ra": 191.5,
+    "dec": -68.1,
+    "mag": 3.04
+  },
+  {
+    "name": "Seginus",
+    "ra": 217.75,
+    "dec": 38.3,
+    "mag": 3.04
+  },
+  {
+    "name": "Dabih",
+    "ra": 305.25,
+    "dec": -14.8,
+    "mag": 3.05
+  },
+  {
+    "name": "Mebsuta",
+    "ra": 101.0,
+    "dec": 25.1,
+    "mag": 3.06
+  },
+  {
+    "name": "Tania Australis",
+    "ra": 155.5,
+    "dec": 41.5,
+    "mag": 3.06
+  },
+  {
+    "name": "Tais",
+    "ra": 288.25,
+    "dec": 67.7,
+    "mag": 3.07
+  },
+  {
+    "name": "Eta Sagittarii",
+    "ra": 274.5,
+    "dec": -36.8,
+    "mag": 3.1
+  },
+  {
+    "name": "Zeta Hydrae",
+    "ra": 133.75,
+    "dec": 5.9,
+    "mag": 3.11
+  },
+  {
+    "name": "Nu Hydrae",
+    "ra": 162.5,
+    "dec": -16.2,
+    "mag": 3.11
+  },
+  {
+    "name": "Lambda Centauri",
+    "ra": 174.0,
+    "dec": -63.0,
+    "mag": 3.11
+  },
+  {
+    "name": "Persian",
+    "ra": 309.5,
+    "dec": -47.3,
+    "mag": 3.11
+  },
+  {
+    "name": "Wazn",
+    "ra": 87.75,
+    "dec": -35.8,
+    "mag": 3.12
+  },
+  {
+    "name": "Talita",
+    "ra": 134.75,
+    "dec": 48.0,
+    "mag": 3.12
+  },
+  {
+    "name": "Zeta Arae",
+    "ra": 254.75,
+    "dec": -56.0,
+    "mag": 3.12
+  },
+  {
+    "name": "Sarin",
+    "ra": 258.75,
+    "dec": 24.8,
+    "mag": 3.12
+  },
+  {
+    "name": "Ke Kwan",
+    "ra": 224.75,
+    "dec": -42.1,
+    "mag": 3.13
+  },
+  {
+    "name": "Alpha Lyncis",
+    "ra": 140.25,
+    "dec": 34.4,
+    "mag": 3.14
+  },
+  {
+    "name": "N Velorum",
+    "ra": 142.75,
+    "dec": -57.0,
+    "mag": 3.16
+  },
+  {
+    "name": "Pi Herculis",
+    "ra": 258.75,
+    "dec": 36.8,
+    "mag": 3.16
+  },
+  {
+    "name": "Nu Puppis",
+    "ra": 99.5,
+    "dec": -43.2,
+    "mag": 3.17
+  },
+  {
+    "name": "Al Haud",
+    "ra": 143.25,
+    "dec": 51.7,
+    "mag": 3.17
+  },
+  {
+    "name": "Aldhibah",
+    "ra": 257.25,
+    "dec": 65.7,
+    "mag": 3.17
+  },
+  {
+    "name": "Phi Sagittarii",
+    "ra": 281.5,
+    "dec": -27.0,
+    "mag": 3.17
+  },
+  {
+    "name": "Hoedus II",
+    "ra": 76.75,
+    "dec": 41.2,
+    "mag": 3.18
+  },
+  {
+    "name": "Alpha Circini",
+    "ra": 220.75,
+    "dec": -65.0,
+    "mag": 3.18
+  },
+  {
+    "name": "Tabit",
+    "ra": 72.5,
+    "dec": 7.0,
+    "mag": 3.19
+  },
+  {
+    "name": "Epsilon Leporis",
+    "ra": 76.25,
+    "dec": -22.4,
+    "mag": 3.19
+  },
+  {
+    "name": "Kappa Ophiuchi",
+    "ra": 254.5,
+    "dec": 9.4,
+    "mag": 3.19
+  },
+  {
+    "name": "G Scorpii",
+    "ra": 267.5,
+    "dec": -37.0,
+    "mag": 3.19
+  },
+  {
+    "name": "Zeta Cygni",
+    "ra": 318.25,
+    "dec": 30.2,
+    "mag": 3.21
+  },
+  {
+    "name": "Errai",
+    "ra": 354.75,
+    "dec": 77.6,
+    "mag": 3.21
+  },
+  {
+    "name": "Delta Lupi",
+    "ra": 230.25,
+    "dec": -40.6,
+    "mag": 3.22
+  },
+  {
+    "name": "Yed Posterior",
+    "ra": 244.5,
+    "dec": -4.7,
+    "mag": 3.23
+  },
+  {
+    "name": "Alava",
+    "ra": 275.25,
+    "dec": -2.9,
+    "mag": 3.23
+  },
+  {
+    "name": "Alphirk",
+    "ra": 322.25,
+    "dec": 70.6,
+    "mag": 3.23
+  },
+  {
+    "name": "Alpha Pictoris",
+    "ra": 102.0,
+    "dec": -61.9,
+    "mag": 3.24
+  },
+  {
+    "name": "Theta Aquilae",
+    "ra": 302.75,
+    "dec": -0.8,
+    "mag": 3.24
+  },
+  {
+    "name": "Sigma Puppis",
+    "ra": 100.25,
+    "dec": -43.3,
+    "mag": 3.25
+  },
+  {
+    "name": "Pi Hydrae",
+    "ra": 211.5,
+    "dec": -26.7,
+    "mag": 3.25
+  },
+  {
+    "name": "Brachium",
+    "ra": 226.0,
+    "dec": -25.3,
+    "mag": 3.25
+  },
+  {
+    "name": "Sulaphat",
+    "ra": 284.75,
+    "dec": 32.7,
+    "mag": 3.25
+  },
+  {
+    "name": "Gamma Hydri",
+    "ra": 56.75,
+    "dec": -74.2,
+    "mag": 3.26
+  },
+  {
+    "name": "Delta Andromedae",
+    "ra": 9.75,
+    "dec": 30.9,
+    "mag": 3.27
+  },
+  {
+    "name": "Theta Ophiuchi",
+    "ra": 260.5,
+    "dec": -25.0,
+    "mag": 3.27
+  },
+  {
+    "name": "Skat",
+    "ra": 343.75,
+    "dec": -15.8,
+    "mag": 3.27
+  },
+  {
+    "name": "Mu Leporis",
+    "ra": 78.25,
+    "dec": -16.2,
+    "mag": 3.29
+  },
+  {
+    "name": "Omega Carinae",
+    "ra": 153.5,
+    "dec": -70.0,
+    "mag": 3.29
+  },
+  {
+    "name": "Edasich",
+    "ra": 231.25,
+    "dec": 59.0,
+    "mag": 3.29
+  },
+  {
+    "name": "Alpha Doradus",
+    "ra": 68.5,
+    "dec": -55.0,
+    "mag": 3.3
+  },
+  {
+    "name": "p Carinae",
+    "ra": 158.0,
+    "dec": -61.7,
+    "mag": 3.3
+  },
+  {
+    "name": "Mu Centauri",
+    "ra": 207.5,
+    "dec": -42.5,
+    "mag": 3.3
+  },
+  {
+    "name": "Propus",
+    "ra": 93.75,
+    "dec": 22.5,
+    "mag": 3.31
+  },
+  {
+    "name": "Rasalgethi",
+    "ra": 258.75,
+    "dec": 14.4,
+    "mag": 3.31
+  },
+  {
+    "name": "Gamma Arae",
+    "ra": 266.25,
+    "dec": -56.4,
+    "mag": 3.31
+  },
+  {
+    "name": "Beta Phoenicis",
+    "ra": 16.5,
+    "dec": -46.7,
+    "mag": 3.32
+  },
+  {
+    "name": "Gorgonea Tertia",
+    "ra": 46.25,
+    "dec": 38.8,
+    "mag": 3.32
+  },
+  {
+    "name": "Megrez",
+    "ra": 183.75,
+    "dec": 57.0,
+    "mag": 3.32
+  },
+  {
+    "name": "Eta Scorpii",
+    "ra": 258.0,
+    "dec": -43.2,
+    "mag": 3.32
+  },
+  {
+    "name": "Nu Ophiuchi",
+    "ra": 269.75,
+    "dec": -9.8,
+    "mag": 3.32
+  },
+  {
+    "name": "Tau Sagittarii",
+    "ra": 286.75,
+    "dec": -27.7,
+    "mag": 3.32
+  },
+  {
+    "name": "Alpha Reticuli",
+    "ra": 63.5,
+    "dec": -62.5,
+    "mag": 3.33
+  },
+  {
+    "name": "Chort",
+    "ra": 167.75,
+    "dec": 15.4,
+    "mag": 3.33
+  },
+  {
+    "name": "Asmidiske",
+    "ra": 117.25,
+    "dec": -24.9,
+    "mag": 3.34
+  },
+  {
+    "name": "Segin",
+    "ra": 28.5,
+    "dec": 63.7,
+    "mag": 3.35
+  },
+  {
+    "name": "Algjebbah",
+    "ra": 81.0,
+    "dec": -2.4,
+    "mag": 3.35
+  },
+  {
+    "name": "Alzirr",
+    "ra": 101.25,
+    "dec": 12.9,
+    "mag": 3.35
+  },
+  {
+    "name": "Delta Aquilae",
+    "ra": 291.25,
+    "dec": 3.1,
+    "mag": 3.36
+  },
+  {
+    "name": "Epsilon Lupi",
+    "ra": 230.75,
+    "dec": -44.7,
+    "mag": 3.37
+  },
+  {
+    "name": "Heze",
+    "ra": 203.75,
+    "dec": -0.6,
+    "mag": 3.38
+  },
+  {
+    "name": "Epsilon Hydrae",
+    "ra": 131.75,
+    "dec": 6.4,
+    "mag": 3.38
+  },
+  {
+    "name": "Meissa",
+    "ra": 83.75,
+    "dec": 9.9,
+    "mag": 3.39
+  },
+  {
+    "name": "q Carinae",
+    "ra": 154.25,
+    "dec": -61.3,
+    "mag": 3.39
+  },
+  {
+    "name": "Auva",
+    "ra": 194.0,
+    "dec": 3.4,
+    "mag": 3.39
+  },
+  {
+    "name": "Zeta Cephei",
+    "ra": 332.75,
+    "dec": 58.2,
+    "mag": 3.39
+  },
+  {
+    "name": "Theta² Tauri",
+    "ra": 67.25,
+    "dec": 15.9,
+    "mag": 3.4
+  },
+  {
+    "name": "Gamma Phoenicis",
+    "ra": 22.0,
+    "dec": -43.3,
+    "mag": 3.41
+  },
+  {
+    "name": "Lambda Tauri",
+    "ra": 60.25,
+    "dec": 12.5,
+    "mag": 3.41
+  },
+  {
+    "name": "Nu Centauri",
+    "ra": 207.5,
+    "dec": -41.7,
+    "mag": 3.41
+  },
+  {
+    "name": "Zeta Lupi",
+    "ra": 228.0,
+    "dec": -52.1,
+    "mag": 3.41
+  },
+  {
+    "name": "Eta Cephei",
+    "ra": 311.25,
+    "dec": 61.8,
+    "mag": 3.41
+  },
+  {
+    "name": "Homam",
+    "ra": 340.25,
+    "dec": 10.8,
+    "mag": 3.41
+  }
+]
