@@ -175,7 +175,7 @@ function plotSkyProjection() {
 
     // Calculate telescope trajectories (24 hours into future)
     const telescopeTrajectories = telescopes.map(tel => {
-        if (!tel.ra || !tel.dec) return null;
+        if (!tel.ra || !tel.dec || !tel.tracking) return null;
 
         // Use current browser time for trajectory calculations
         const currentTime = new Date();
