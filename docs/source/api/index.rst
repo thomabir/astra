@@ -1,20 +1,29 @@
-Module Reference
-============
+API Reference
+=============
 
-This section provides detailed documentation for all modules in Astra.
+.. autosummary::
+   :toctree: generated
+   :recursive:
 
-.. toctree::
-   :maxdepth: 2
-
-   utils
-   observatory
-   schedule
-   pointer
-   guiding
-   autofocus
-   image_handler
-   config
-   alpaca_device_process
-   calibrate_guiding
-   logging_handler
-   main
+   astra.action_configs
+   astra.alpaca_device_process
+   astra.autofocus
+   astra.calibrate_guiding
+   astra.config
+   astra.database_manager
+   astra.device_manager
+   astra.filename_templates
+   astra.guiding
+   astra.header_manager
+   astra.image_handler
+   astra.logger
+   astra.main
+   astra.observatory_loader
+   astra.observatory
+   astra.paired_devices
+   astra.pointer
+   astra.queue_manager
+   astra.safety_monitor
+   astra.scheduler
+   astra.thread_manager
+   astra.utils

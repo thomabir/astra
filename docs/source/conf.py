@@ -1,6 +1,6 @@
+import importlib.metadata
 import os
 import sys
-import importlib.metadata
 
 # Add the project source directory to the path so that autodoc can find the modules
 sys.path.insert(0, os.path.abspath("../../src"))
@@ -56,7 +56,8 @@ html_theme_options = {
     "use_fullscreen_button": False,
     "use_download_button": False,
     "home_page_in_toc": True,
-    "show_navbar_depth": 2,
+    "show_navbar_depth": 1,
+    "collapse_navigation": True,
     "navbar_end": ["navbar-icon-links"],
 }
 

@@ -24,17 +24,21 @@ Astra (**Automated Survey observaTory Robotised with Alpaca**) is an open-source
 
 <table>
   <tr>
-    <td width="33%">
+    <td width="24%">
       <img src="docs/source/_static/ui-summary-tab.png" alt="Observatory overview"/>
       <p align="center"><em>Observatory overview</em></p>
     </td>
-    <td width="33%">
+    <td width="24%">
       <img src="docs/source/_static/ui-log-tab.png" alt="System logs"/>
       <p align="center"><em>System logs</em></p>
     </td>
-    <td width="33%">
+    <td width="24%">
       <img src="docs/source/_static/ui-weather-tab.png" alt="Weather monitoring"/>
       <p align="center"><em>Weather monitoring</em></p>
+    </td>
+    <td width="24%">
+      <img src="docs/source/_static/ui-controls-tab.png" alt="Controls tab"/>
+      <p align="center"><em>Controls tab</em></p>
     </td>
   </tr>
 </table>
@@ -57,3 +61,11 @@ Released under the [GNU GPL v3](LICENSE).
 
 - [Documentation](https://docs.withastra.io/)  
 - [Issue Tracker](https://github.com/ppp-one/astra/issues)  
+
+---
+
+## Citation
+
+If you use Astra in published research, please cite it as:
+```
+P. P. Parry, "Astra: Automated Survey observaTory Robotised with
