@@ -37,7 +37,11 @@ from astropy.io import fits
 from astropy.time import Time
 from astropy.visualization import ZScaleInterval
 from fastapi import Body, FastAPI, File, Request, UploadFile, WebSocket
-from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    StreamingResponse,
+)
 from fastapi.templating import Jinja2Templates
 
 from astra import ASTRA_VER, Config
@@ -75,6 +79,9 @@ TWILIGHT_CACHE_TIME = None
 # Celestial data cache: stores celestial body positions for sky projection
 CELESTIAL_CACHE = None
 CELESTIAL_CACHE_TIME = None
+
+# Polling data cache: stores { (device_type, day): (timestamp, result) }
+POLLING_CACHE = {}
 
 
 def observatory_db() -> sqlite3.Connection:
@@ -838,7 +845,17 @@ async def polling(device_type: str, day: float = 1, since: str | None = None):
     Returns:
         dict: Processed polling data with safety limits and latest values.
     """
+    # Check cache for full queries (since is None)
+    if since is None:
+        cache_key = (device_type, day)
+        if cache_key in POLLING_CACHE:
+            cache_time, cache_result = POLLING_CACHE[cache_key]
+            if (datetime.datetime.now(UTC) - cache_time).total_seconds() < 60:
+                return cache_result
+
     db = observatory_db()
+    obs = OBSERVATORY
+
     if since is not None:
         # Only fetch new records since the given timestamp
         q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > '{since}'"""
@@ -846,6 +863,20 @@ async def polling(device_type: str, day: float = 1, since: str | None = None):
         q = f"""SELECT * FROM polling WHERE device_type = '{device_type}' AND datetime > datetime('now', '-{day} day')"""
 
     df = pd.read_sql_query(q, db)
+
+    if device_type == "ObservingConditions" and "SafetyMonitor" in obs.config:
+        # Also get SafetyMonitor data
+        if since is not None:
+            q_isSafe = f"""SELECT * FROM polling WHERE device_type = 'SafetyMonitor' AND datetime > '{since}'"""
+        else:
+            q_isSafe = f"""SELECT * FROM polling WHERE device_type = 'SafetyMonitor' AND datetime > datetime('now', '-{day} day')"""
+
+        df_isSafe = pd.read_sql_query(q_isSafe, db)
+
+        # Append isSafe to df
+        if not df_isSafe.empty:
+            df = pd.concat([df, df_isSafe], ignore_index=True)
+
     db.close()
 
     # Pivot: datetime as index, device_command as columns
@@ -854,6 +885,8 @@ async def polling(device_type: str, day: float = 1, since: str | None = None):
     # Ensure datetime index and numeric values
     df.index = pd.to_datetime(df.index)
     df = df.sort_index()
+    # Convert boolean strings/values to 1/0 before numeric conversion
+    df = df.replace({"True": 1, "False": 0, True: 1, False: 0})
     df = df.apply(pd.to_numeric, errors="coerce")
 
     # Latest values
@@ -874,8 +907,7 @@ async def polling(device_type: str, day: float = 1, since: str | None = None):
             df_groupby["SkyTemperature"] - df_groupby["Temperature"]
         )
 
-    obs = OBSERVATORY
-    if "ObservingConditions" in obs.config:
+    if device_type == "ObservingConditions" and "ObservingConditions" in obs.config:
         # Safety limits
         closing_limits = obs.config["ObservingConditions"][0]["closing_limits"]
         safety_limits = {}
@@ -910,18 +942,22 @@ async def polling(device_type: str, day: float = 1, since: str | None = None):
             except Exception as e:
                 logger.warning(f"Error calculating twilight periods: {e}")
 
-        return {
+        result = {
             "data": df_groupby.reset_index().to_dict(orient="records"),
             "safety_limits": safety_limits,
             "latest": latest,
             "twilight_periods": twilight_periods,
         }
     else:
-        return {
+        result = {
             "data": df_groupby.reset_index().to_dict(orient="records"),
             "latest": latest,
-            "twilight_periods": [],
         }
+
+    if since is None:
+        POLLING_CACHE[(device_type, day)] = (datetime.datetime.now(UTC), result)
+
+    return result
 
 
 @app.get("/api/db/guiding")

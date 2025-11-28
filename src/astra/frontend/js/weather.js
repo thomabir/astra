@@ -202,11 +202,19 @@ function updateWeatherTableOnly() {
             WindGust: 4,
             Humidity: 5,
             SkyTemperature: 6,
-            Temperature: 8,
-            DewPoint: 9,
+            Temperature: 7,
+            DewPoint: 8,
+            SkyBrightness: 9,
+            Pressure: 10,
+            IsSafe: 11
         };
         return (priority[a] || Infinity) - (priority[b] || Infinity);
     });
+    // remove isSafe from the parameters
+    const index = weather_parameters.indexOf("IsSafe");
+    if (index > -1) {
+        weather_parameters.splice(index, 1);
+    }
 
     const tableHtml = generateWeatherTable(weather_parameters, latest_values, weather_safety_limits);
     document.getElementById(`weather-latest`).innerHTML = tableHtml;
@@ -236,8 +244,11 @@ function plotWeather(data, update) {
             WindGust: 4,
             Humidity: 5,
             SkyTemperature: 6,
-            Temperature: 8,
-            DewPoint: 9,
+            Temperature: 7,
+            DewPoint: 8,
+            SkyBrightness: 9,
+            Pressure: 10,
+            IsSafe: 11
         };
         return (priority[a] || Infinity) - (priority[b] || Infinity);
     });
