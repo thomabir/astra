@@ -51,6 +51,8 @@ from astra.observatory import Observatory
 from astra.observatory_loader import ObservatoryLoader
 from astra.paired_devices import PairedDevices
 
+pd.set_option("future.no_silent_downcasting", True)
+
 logger = logging.getLogger(__name__)
 logger.addHandler(ConsoleStreamHandler())
 logger.setLevel(logging.INFO)
