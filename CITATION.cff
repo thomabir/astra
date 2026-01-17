@@ -38,6 +38,14 @@ authors:
     orcid: 'https://orcid.org/0000-0002-2214-9258'
     affiliation: Thüringer Landessternwarte
     email: sebastian@tls-tautenburg.de
+  - given-names: Urs
+    family-names: Schroffenegger
+    orcid: 'https://orcid.org/0009-0005-5046-203X'
+    affiliation: >-
+      Center for Space and Habitability, 
+      University of Bern, Gesellschaftsstrasse 6, 
+      3012 Bern, Switzerland
+    email:
   - given-names: Didier
     family-names: Queloz
     orcid: 'https://orcid.org/0000-0002-3012-0316'
