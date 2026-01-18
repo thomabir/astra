@@ -103,6 +103,7 @@ SafetyMonitor:
 
 Misc:
   # Webcam: http://localhost:8888/inside # hls stream, see https://github.com/bluenviron/mediamtx
+  # AllSky: /path/to/allsky.jpg # path to local all sky image
   backup_time: "12:00" # UTC back up time of polled data (e.g. CCDTemperature) and logs
   filename_templates:
     object: "{action_date}/{device}_{filter_name}_{object_name}_{exptime:.3f}_{timestamp}.fits"

@@ -168,9 +168,11 @@
                         </tbody>
                     </table>
 
-                    <div class="flex flex-row justify-center items-center">
+                    {# Grid Layout: 2 cols on mobile (1 hero + 2 split), 3 cols on desktop #}
+                    <div class="grid w-full gap-2 {{ 'grid-cols-2 md:grid-cols-3' if allsky_enabled else 'grid-cols-1 md:grid-cols-2' }}">
                         {# latest image #}
-                        <div id="summary-last-image-parent" class="flex justify-center basis-1/2 mr-2 relative">
+                        {# If 3 items exist, this spans 2 cols on mobile (Hero mode). Otherwise standard 1 col. #}
+                        <div id="summary-last-image-parent" class="flex justify-center w-full relative {{ 'col-span-2 md:col-span-1' if allsky_enabled else '' }}">
                             <img id="summary-last-image" alt="latest image" class="object-contain h-full w-full hidden">
                             <svg xmlns="http://www.w3.org/2000/svg" id="summary-last-image-placeholder" viewBox="0 0 24 24" fill="currentColor" class="w-full p-12 opacity-20">
                                 <path fill-rule="evenodd" d="M1.5 6a2.25 2.25 0 012.25-2.25h16.5A2.25 2.25 0 0122.5 6v12a2.25 2.25 0 01-2.25 2.25H3.75A2.25 2.25 0 011.5 18V6zM3 16.06V18c0 .414.336.75.75.75h16.5A.75.75 0 0021 18v-1.94l-2.69-2.689a1.5 1.5 0 00-2.12 0l-.88.879.97.97a.75.75 0 11-1.06 1.06l-5.16-5.159a1.5 1.5 0 00-2.12 0L3 16.061zm10.125-7.81a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0z" clip-rule="evenodd" />
@@ -188,9 +190,19 @@
                             </div>
                         </div>
 
+                        {# all sky feed #}
+                        {% if allsky_enabled %}
+                        <div id="allsky-container"
+                            class="flex w-full justify-center items-center bg-gray-600/20 rounded-lg aspect-square relative overflow-hidden group">
+                             <a id="allsky-image-link" href="/api/allsky/latest">
+                                <img id="allsky-image" src="/api/allsky/latest" class="object-contain w-full h-full" alt="All Sky Camera">
+                            </a>
+                        </div>
+                        {% endif %}
+
                         {# webcam feed #}
                         <div id="webcam-container"
-                            class="flex basis-1/2 ml-2 justify-center items-center bg-gray-600/20 rounded-lg aspect-square">
+                            class="flex w-full justify-center items-center bg-gray-600/20 rounded-lg aspect-square">
                             {% if webcamfeeds != {} %}
                             <div id="webcam-placeholder"
                                 class="text-center cursor-pointer text-white/50 hover:text-white/80"
@@ -1208,6 +1220,17 @@
         if (typeof initializeSkyChart === 'function') {
             initializeSkyChart();
         }
+
+        {% if allsky_enabled %}
+        // Update All-Sky image periodically
+        const allskyImage = document.getElementById('allsky-image');
+        const allskyImageLink = document.getElementById('allsky-image-link');
+        setInterval(function() {
+            const timestamp = new Date().getTime();
+            allskyImage.src = `/api/allsky/latest?t=${timestamp}`;
+            allskyImageLink.href = `/api/allsky/latest?t=${timestamp}`;
+        }, 60000); // Update every 60 seconds
+        {% endif %}
 
     </script>
 

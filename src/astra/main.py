@@ -18,6 +18,7 @@ import asyncio
 import datetime
 import json
 import logging
+import mimetypes
 import sqlite3
 import time
 from contextlib import asynccontextmanager
@@ -73,6 +74,7 @@ LAST_IMAGE_PREVIEW = None  # Stores (jpeg_bytes, headers) tuple
 LAST_IMAGE_TIME = None
 TRUNCATE_FACTOR = None
 CUSTOM_OBSERVATORY = None
+ALLSKY_PATH = None
 
 # Twilight calculation cache: stores (timestamp, start_time, end_time, periods)
 TWILIGHT_CACHE = None
@@ -109,6 +111,7 @@ def load_observatories() -> None:
     global OBSERVATORY  # not sure if this is necessary
     global WEBCAMFEED
     global FWS
+    global ALLSKY_PATH
 
     config_file = (
         Config().paths.observatory_config / f"{Config().observatory_name}_config.yml"
@@ -131,6 +134,8 @@ def load_observatories() -> None:
     if "Misc" in obs.config:
         if "Webcam" in obs.config["Misc"]:
             WEBCAMFEED = obs.config["Misc"]["Webcam"]
+        if "AllSky" in obs.config["Misc"]:
+            ALLSKY_PATH = obs.config["Misc"]["AllSky"]
 
     obs.connect_all_devices()
 
@@ -333,6 +338,26 @@ async def latest_image_preview():
             "X-Image-Timestamp": LAST_IMAGE_TIME.isoformat() if LAST_IMAGE_TIME else "",
         },
     )
+
+
+@app.get("/api/allsky/latest")
+async def get_allsky_image():
+    """Serve the latest All-Sky camera image.
+
+    Returns:
+        FileResponse: The image file with no-store cache headers.
+    """
+    if ALLSKY_PATH and Path(ALLSKY_PATH).exists():
+        media_type, _ = mimetypes.guess_type(ALLSKY_PATH)
+        return FileResponse(
+            ALLSKY_PATH,
+            media_type=media_type,
+            headers={
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+            },
+        )
+    return HTMLResponse(status_code=404, content="All-Sky image not available")
 
 
 @app.post("/api/close")
@@ -1638,6 +1663,7 @@ async def serve_files(request: Request, path: str = ""):
                 "observatory": OBSERVATORY.name,
                 "webcamfeeds": WEBCAMFEED,
                 "config": OBSERVATORY.config,
+                "allsky_enabled": ALLSKY_PATH is not None,
             },
         )
     elif path == "favicon.svg":
