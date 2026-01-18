@@ -35,7 +35,7 @@
     {% set navigation = ['Summary', 'Log', 'Weather', 'Controls'] %}
 
     <div id="popup"
-        class="absolute hidden rounded-md p-2 shadow-md bg-black/90 text-sm opacity-90 whitespace-break-spaces z-20 m-2 max-w-full sm:lg:max-w-screen-sm md:max-w-screen-md">
+        class="absolute hidden rounded-md p-2 shadow-md bg-black/90 text-sm opacity-90 whitespace-break-spaces z-20 m-2 max-w-full sm:lg:max-w-screen-sm md:max-w-screen-md pointer-events-none">
     </div>
 
     <!-- Confirmation Modal -->
@@ -434,21 +434,65 @@
         const popup = document.querySelector('#popup');
 
         let scheduleLoadTime = 0;
+        let lastMousePosition = { x: 0, y: 0 };
+        let activeRowIndex = -1;
+        let activeTableId = null;
+
+        function updatePopupContent(rowData) {
+             let text = syntaxHighlight(rowData);
+
+            // Split the text into lines
+            let lines = text.split('\n');
+
+            // Check if there are 10 or more lines
+            if (lines.length >= 10) {
+                // Split the lines into two groups for the columns
+                let mid = Math.ceil(lines.length / 2);
+                let firstColumn = lines.slice(0, mid).join('\n');
+                let secondColumn = lines.slice(mid).join('\n');
+
+                // Wrap the content in divs and add Tailwind classes
+                popup.innerHTML = `<div class="grid grid-cols-2 gap-8 align-top"><div>${firstColumn}</div><div>${secondColumn}</div></div>`;
+            } else {
+                // If less than 10 lines, just set the text
+                popup.innerHTML = text;
+            }
+        }
 
         function movePopup(e) {
-            const mouseX = e.pageX;
-            const mouseY = e.pageY;
+            const padding = 10;
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            lastMousePosition.x = mouseX;
+            lastMousePosition.y = mouseY;
+
             const popupWidth = popup.offsetWidth;
             const popupHeight = popup.offsetHeight;
-            const padding = 10;
-            const popupX = mouseX + padding;
-            const popupY = mouseY + padding;
-            const maxX = window.innerWidth - popupWidth - padding;
-            const maxY = window.innerHeight - popupHeight - padding;
-            const adjustedX = Math.min(popupX, maxX);
-            const adjustedY = popupY > maxY ? mouseY - popupHeight - padding : popupY;
-            popup.style.left = `${adjustedX}px`;
-            popup.style.top = `${adjustedY}px`;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+            const scrollX = window.scrollX;
+            const scrollY = window.scrollY;
+
+            let left = mouseX + padding;
+            let top = mouseY + padding;
+
+            // Flip horizontally if outside
+            if (left + popupWidth > windowWidth) {
+                left = mouseX - popupWidth - padding;
+            }
+
+            // Flip vertically if outside
+            if (top + popupHeight > windowHeight) {
+                top = mouseY - popupHeight - padding;
+            }
+
+            // Ensure it doesn't go off the left/top edges after flipping
+            left = Math.max(padding, left);
+            top = Math.max(padding, top);
+
+            popup.style.left = (left + scrollX) + 'px';
+            popup.style.top = (top + scrollY) + 'px';
         }
 
         function syntaxHighlight(json) {
@@ -538,6 +582,51 @@
 
         }
 
+        function handleRowMouseOver(e) {
+            const row = e.currentTarget;
+            const rowData = row._data;
+            if (!rowData) return;
+            
+            activeRowIndex = row._index;
+            const table = row.closest('table');
+            if (table) activeTableId = table.id;
+
+            const popup = document.querySelector('#popup');
+            popup.classList.remove('hidden');
+            popup.classList.add('block');
+            
+            updatePopupContent(rowData);
+
+            movePopup(e);
+        }
+
+        function handleRowMouseMove(e) {
+            movePopup(e);
+        }
+
+        function handleRowMouseOut() {
+            activeRowIndex = -1;
+            activeTableId = null;
+
+            const popup = document.querySelector('#popup');
+            popup.classList.remove('block');
+            popup.classList.add('hidden');
+        }
+
+        function handleRowClick(e) {
+            const popup = document.querySelector('#popup');
+            // toggle
+            console.log("clicked");
+            if (popup.classList.contains('hidden')) {
+                movePopup(e);
+                popup.classList.remove('hidden');
+                popup.classList.add('block');
+            } else {
+                popup.classList.remove('block');
+                popup.classList.add('hidden');
+            }
+        }
+
         function updateTable(tableId, data, headers, thead_display = true, right_align = true) {
             // tableId: id of the table to update
             // data: array of objects containing the data to be displayed
@@ -569,74 +658,55 @@
             }
 
             var tbody = table.getElementsByTagName("tbody")[0];
-            tbody.innerHTML = "";
+            
+            let rows = tbody.rows;
+            let headerKeys = Object.keys(headers);
 
             // create a new row for every item in data
             for (var i = 0; i < data.length; i++) {
-                var row = tbody.insertRow(i);
+                let row;
+                if (i < rows.length) {
+                    row = rows[i];
+                } else {
+                    row = tbody.insertRow(i);
+                    row.classList.add("border-b");
+                    row.classList.add("border-b-slate-500");
+                    row.classList.add("hover:bg-gray-600/40");
+                    row.classList.add("transition-colors");
+
+                    row.addEventListener('mouseover', handleRowMouseOver);
+                    row.addEventListener('mousemove', handleRowMouseMove);
+                    row.addEventListener('mouseout', handleRowMouseOut);
+                    row.addEventListener('click', handleRowClick);
+                }
+
+                // Ensure border classes are present
                 row.classList.add("border-b");
                 row.classList.add("border-b-slate-500");
-                row.classList.add("hover:bg-gray-600/40");
-                row.classList.add("transition-colors");
-                row.key = i;
 
+                row._data = data[i];
+                row._index = i;
 
-                row.addEventListener('mouseover', (e) => {
-                    popup.classList.remove('hidden');
-                    popup.classList.add('block');
-                    let text = syntaxHighlight(data[e.target.parentNode.key]);
+                // live update popup if watching this row
+                if (activeTableId === tableId && activeRowIndex === i) {
+                    updatePopupContent(data[i]);
+                    movePopup({clientX: lastMousePosition.x, clientY: lastMousePosition.y});
+                }
 
-
-                    // Split the text into lines
-                    let lines = text.split('\n');
-
-                    // Check if there are 10 or more lines
-                    if (lines.length >= 10) {
-                        // Split the lines into two groups for the columns
-                        let mid = Math.ceil(lines.length / 2);
-                        let firstColumn = lines.slice(0, mid).join('\n');
-                        let secondColumn = lines.slice(mid).join('\n');
-
-                        // Wrap the content in divs and add Tailwind classes
-                        popup.innerHTML = `<div class="grid grid-cols-2 gap-8 align-top"><div>${firstColumn}</div><div>${secondColumn}</div></div>`;
+                for (var j = 0; j < headerKeys.length; j++) {
+                    let cell;
+                    if (j < row.cells.length) {
+                        cell = row.cells[j];
                     } else {
-                        // If less than 10 lines, just set the text
-                        popup.innerHTML = text;
+                        cell = row.insertCell(j);
                     }
-                    movePopup(e);
-                });
 
-                row.addEventListener('mousemove', (e) => {
-                    movePopup(e);
-                });
-
-                row.addEventListener('mouseout', () => {
-                    popup.classList.remove('block');
-                    popup.classList.add('hidden');
-
-                });
-
-                row.addEventListener('click', (e) => {
-                    // toggle
-                    console.log("clicked")
-                    if (popup.classList.contains('hidden')) {
-                        popup.classList.remove('hidden');
-                        popup.classList.add('block');
-                    } else {
-                        popup.classList.remove('block');
-                        popup.classList.add('hidden');
-                    }
-                });
-
-                for (var j = 0; j < Object.keys(headers).length; j++) {
-                    var cell = row.insertCell(j);
-                    cell.innerHTML = data[i][Object.keys(headers)[j]];
-                    cell.classList.add("py-1.5");
-                    cell.classList.add("px-3");
+                    cell.innerHTML = data[i][headerKeys[j]];
+                    cell.className = "py-1.5 px-3";
 
 
                     // if last column, right align and blue text
-                    if ((j == Object.keys(headers).length - 1) && right_align) {
+                    if ((j == headerKeys.length - 1) && right_align) {
                         cell.classList.add("text-right");
                         cell.classList.add("text-blue-300");
                         cell.classList.add("font-variant-numeric");
@@ -644,7 +714,7 @@
                     }
 
                     // if status column, colour the cell
-                    if (Object.keys(headers)[j] == "status") {
+                    if (headerKeys[j] == "status") {
                         if (data[i]['valid'] == true) {
                             cell.classList.add("text-green-500");
                         } else if (data[i]['valid'] == false) {
@@ -653,9 +723,23 @@
                     }
                 }
 
+                // Remove extra cells
+                while (row.cells.length > headerKeys.length) {
+                    row.deleteCell(-1);
+                }
+
             }
-            row.classList.remove("border-b");
-            row.classList.remove("border-b-slate-500");
+            
+            // Remove extra rows
+            while (tbody.rows.length > data.length) {
+                tbody.deleteRow(-1);
+            }
+
+            if (tbody.rows.length > 0) {
+                let lastRow = tbody.rows[tbody.rows.length - 1];
+                lastRow.classList.remove("border-b");
+                lastRow.classList.remove("border-b-slate-500");
+            }
 
         }
 

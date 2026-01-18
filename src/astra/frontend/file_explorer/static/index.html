@@ -459,7 +459,8 @@
         document.getElementById('close-fits-modal').onclick = closeFitsModal;
         // Click on backdrop (first child div with bg-black/50) to close
         document.getElementById('fits-modal').addEventListener('click', function(e) {
-            if (e.target === this) {
+            // Close if clicking outside the dialog content (e.g. on the backdrop)
+            if (!e.target.closest('[role="dialog"]')) {
                 closeFitsModal();
             }
         });
