@@ -515,7 +515,7 @@ class ObjectActionConfig(BaseActionConfig):
         "dec": "Declination to slew to when overriding current pointing.",
         "alt": "Altitude coordinate when issuing Alt/Az pointings.",
         "az": "Azimuth coordinate when issuing Alt/Az pointings.",
-        "lookup_name": "Name of the celestial body to observe (e.g., 'mars', 'M31').",
+        "lookup_name": "Instead of specifying ra/dec or alt/az, use SIMBAD/Astropy to look up coordinates for celestial body to observe (e.g., 'mars', 'M31').",
         "filter": "Filter name to load before imaging.",
         "focus_shift": "Focus offset relative to the stored best focus.",
         "focus_position": "Absolute focus position override.",
