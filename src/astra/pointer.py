@@ -190,12 +190,14 @@ def calculate_pointing_correction_from_image(
     )
 
     # Limit number of stars and gaia stars to use for plate solve
-    stars_in_image_used = min(len(stars_in_image), 24)
+    stars_in_image_used = min(len(stars_in_image), 20)
 
     if stars_in_image_used < 4:
         raise Exception("Not enough stars detected to plate solve")
 
     stars_in_image = stars_in_image[0:stars_in_image_used]
+    logger.debug(f"Detected {len(stars_in_image)} stars in image for plate solving")
+
     gaia_star_coordinates = _get_gaia_star_coordinates(
         target_ra,
         target_dec,
@@ -207,6 +209,7 @@ def calculate_pointing_correction_from_image(
         limit=int(2 * stars_in_image_used),
         use_local_db=use_local_db,
     )
+    logger.debug(f"Queried {len(gaia_star_coordinates)} Gaia stars for plate solving")
 
     image_star_mapping = ImageStarMapping.from_gaia_coordinates(
         stars_in_image, gaia_star_coordinates
