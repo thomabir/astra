@@ -811,9 +811,9 @@ class CalibrateGuidingActionConfig(BaseActionConfig):
     """Calibrate guiding parameters using timed guide pulses."""
 
     filter: Optional[str] = None
-    pulse_time: float = 5000.0
-    exptime: float = 5.0
-    settle_time: float = 10.0
+    pulse_time: int = 5000
+    exptime: float = 1.0
+    settle_time: float = 1.0
     number_of_cycles: int = 10
     focus_shift: Optional[float] = None
     focus_position: Optional[float] = None
@@ -1018,6 +1018,7 @@ class AutofocusConfig(BaseActionConfig):
     """
 
     exptime: float | int = field(default=3.0, metadata={"required": True})
+    filter: Optional[str] = None
     reduce_exposure_time: bool = False
     search_range: Optional[List[int] | int] = None
     search_range_is_relative: bool = False
@@ -1052,6 +1053,7 @@ class AutofocusConfig(BaseActionConfig):
 
     FIELD_DESCRIPTIONS: ClassVar[dict[str, str]] = {
         "exptime": "Exposure time for focus frames in seconds.",
+        "filter": "Filter to use during autofocus procedure.",
         "search_range": "Range of focus positions to search. Accepts a single width or explicit bounds.",
         "search_range_is_relative": "Interpret search_range relative to the current focus position.",
         "n_steps": "Number of steps for each sweep.",
@@ -1081,8 +1083,12 @@ class AutofocusConfig(BaseActionConfig):
         "device_name": "camera_name",
         "action_type": "autofocus",
         "action_value": {
-            "exptime": 3.0,
+            "exptime": 1.0,
+            "filter": "V",
+            "search_range_is_relative": True,
+            "search_range": 1000,
             "n_steps": [30, 20],
+            "n_exposures": [1, 1],
         },
         "start_time": "2025-01-01 00:00:00.000",
         "end_time": "2025-02-01 00:00:00.000",

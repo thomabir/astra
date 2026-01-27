@@ -2658,6 +2658,7 @@ class Observatory:
         self.logger.info(f"Running guiding calibration for {action.device_name}")
         try:
             self.pre_sequence(action, paired_devices)
+            self.open_observatory(paired_devices)
             if not self.check_conditions(action=action):
                 return False
 
