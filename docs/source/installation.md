@@ -17,7 +17,7 @@ git clone https://github.com/ppp-one/astra.git
 cd astra
 ```
 
-Or, download the ZIP archive from the [GitHub repository](https://github.com/ppp-one/astra.git) and extract it.
+Or, download the ZIP archive from the [GitHub repository](https://github.com/ppp-one/astra/releases) and extract it.
 
 ### 2. Set up a Python environment using _uv_ or _conda_
 
@@ -28,7 +28,7 @@ We recommend using [_uv_](https://docs.astral.sh/uv/) because it provides consis
 Using your terminal, navigate to the _astra_ directory and run:
 
 ```bash
-# Create a new uv environment
+# Create a new uv environment and install Astra and its dependencies
 uv sync
 ```
 

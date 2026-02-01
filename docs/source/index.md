@@ -1,6 +1,4 @@
-# _Astra_
-
-<div style="margin: 60px"></div>
+# Astra Documentation
 
 ```{image} _static/astra-banner.jpg
 :width: 100%
@@ -15,7 +13,7 @@ astronomical observatories.
 _Astra_ controls observatory devices via the **ASCOM Alpaca protocol**. It can execute prescheduled observatory actions under continuous weather safety supervision,
 such as object observations with plate-solve-based pointing correction using an offline Gaia–2MASS catalogue, PID-controlled autoguiding, sky-flats, and autofocusing.
 
-A FastAPI web interface provides a browser UI (shown above), REST and WebSocket APIs for real-time status, image previews, SQLite-backed database.
+A FastAPI web interface provides a browser UI, REST and WebSocket APIs for real-time status, image previews, SQLite-backed database.
 
 ## Used By
 
@@ -25,6 +23,42 @@ delivering reliable, unattended survey operations, including:
 - SPECULOOS-South (4x 1 m class): Paranal, Chile
 - Saint-Ex (1 m class): San Pedro Mártir, Mexico
 - ETH Observatory (0.5 m class): Zurich, Switzerland
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="24%">
+      <img src="_static/ui-summary-tab.png" alt="Observatory overview"/>
+      <p align="center"><em>Observatory overview</em></p>
+    </td>
+    <td width="24%">
+      <img src="_static/ui-log-tab.png" alt="System logs"/>
+      <p align="center"><em>System logs</em></p>
+    </td>
+    <td width="24%">
+      <img src="_static/ui-weather-tab.png" alt="Weather monitoring"/>
+      <p align="center"><em>Weather monitoring</em></p>
+    </td>
+    <td width="24%">
+      <img src="_static/ui-controls-tab.png" alt="Controls tab"/>
+      <p align="center"><em>Controls tab</em></p>
+    </td>
+  </tr>
+</table>
+
+<table style="margin-top: 20px;">
+  <tr>
+    <td width="45%">
+      <img src="_static/ui-schedule-editor.png" alt="Astra schedule editor"/>
+      <p align="center"><em>Schedule editor</em></p>
+    </td>
+    <td width="45%">
+      <img src="_static/ui-fits-viewer.jpg" alt="Astra fits viewer"/>
+      <p align="center"><em>FITS viewer</em></p>
+    </td>
+  </tr>
+</table>
 
 ```{note}
 This documentation is a work in progress. We are continuously updating and improving it.

@@ -1,6 +1,6 @@
 # Operation Guide
 
-Observatory operation with _Astra_ is designed to be as automated and safe as possible, with a focus on robotic observing. This guide covers the key aspects of operating _Astra_, including startup, web interface, watchdog functionality, weather safety, core logic, and troubleshooting.
+Observatory operation with _Astra_ is designed to be as automated and safe as possible, with a focus on robotic observing. This guide covers the key aspects of operating _Astra_, including startup, first operations, web interface, watchdog functionality, weather safety, core logic, and troubleshooting.
 
 ## Startup
 
@@ -25,23 +25,83 @@ Following [Quickstart](../quickstart), `astra` has a few optional startup option
 
 In most cases you will run `astra` without any options.
 
-<!-- Logic, best practices, safety no. 1 -->
+## First Operations
 
-When _Astra_ starts, it goes through three main phases: initialization, device connection, and web interface.
+After starting _Astra_, we assume the following:
 
-1. **Initialization**
-   - **Database**: Creates (if it doesn't exist) a local SQLite database to store polled device data and logs.
-   - **Configuration**: Loads both observatory and FITS header configuration.
-   - **Queue**: Starts a shared queue for managing communication between device processes.
-   - **Flags**: Initializes status flags for running the watchdog, schedule, weather safety, and error-free state.
-   - **Schedule**: Checks for and loads an observation schedule, if available.
-   - **Devices**: Creates independent processes for each configured device.
-2. **Device Connection**
-   - **Connect Devices**: Each device process attempts to connect to its hardware.
-   - **Polling**: Starts automatic polling of device properties (as dictated by the FITS header configuration).
-   - **Safety System**: Watchdog starts monitoring weather, device process health, and system status.
-3. **Web Interface**
-   - **FastAPI**: jinja2 delivered user interface and API are initialized.
+- **Independent Safety:** An independent safety system is in place to monitor the observatory and weather (exposing its state via an ASCOM SafetyMonitor).
+  - This system must be capable of independently closing the observatory should the computer running _Astra_ fail.
+  - **Recommendation:** Configure this system with weather thresholds that are _less conservative_ than _Astra_'s internal safety monitor. This ensures _Astra_ attempts a graceful closing first, with the independent system acting as a redundant fail-safe.
+
+- **Hardware Status:** All devices are connected, aligned, and the dome is slaved (if applicable).
+  - Ensure the `close_dome_on_telescope_error` flag is set correctly for your needs in the [observatory configuration](observatory_configuration), default is `false`.
+
+- **Focus:** The focus position is roughly set in the [observatory configuration](observatory_configuration).
+
+### 1. Create a Commissioning Schedule
+
+Create a schedule file containing the following sequence:
+
+**A. Open and Cool**
+First, trigger the open action. This opens the observatory and automatically cools the camera to the temperature defined in your configuration.
+
+```json
+// Open observatory and cool
+{
+  "device_name": "camera_main",
+  "action_type": "open",
+  "action_value": {},
+  "start_time": "2025-08-23 22:30:00.000",
+  "end_time": "2025-08-24 10:00:00.000"
+}
+```
+
+**B. Autofocus**
+Run the autofocus routine. Ensure the `filter` matches one installed in your wheel and `exptime` is sufficient for star detection.
+
+```json
+// Autofocus
+{
+  "device_name": "camera_main",
+  "action_type": "autofocus",
+  "action_value": {
+    "exptime": 3,
+    "filter": "V",
+    "search_range_is_relative": true,
+    "search_range": 1000,
+    "n_steps": [30, 20],
+    "n_exposures": [1, 1]
+  },
+  "start_time": "2025-08-23 22:35:00.000",
+  "end_time": "2025-08-23 22:50:00.000"
+}
+```
+
+In successful completion, this will set the new focus position in the observatory configuration. Images from the autofocus process are saved in the images/autofocus/ directory in addition to a V-curve plot.
+
+**C. Calibrate guiding and Pointing**
+Once focused, calibrate the autoguider and (optionally) build a pointing model.
+
+```json
+// Calibrate Guiding
+{
+  "device_name":"camera_main",
+  "action_type":"calibrate_guiding",
+  "action_value":{},
+  "start_time":"2025-08-23 22:50:00.000",
+  "end_time":"2025-08-23 23:10:00.000"
+}
+
+// Optional: Pointing Model
+{
+  "device_name":"camera_main",
+  "action_type":"pointing_model",
+  "action_value":{},
+  "start_time":"2025-08-23 23:10:00.000",
+  "end_time":"2025-08-24 00:10:00.000"
+}
+
+```
 
 ## Web Interface
 
@@ -101,6 +161,22 @@ The scheduler handles different action types based on weather dependency:
 If weather becomes unsafe during execution, weather-dependent actions will stop, while weather-independent actions continue. In either case, the observatory will close safely if needed. The scheduler will also attempt to resume operations once conditions are safe again (determined by the `max_safe_duration` in the [observatory configuration](observatory_configuration)) and within the schedule's time frame.
 
 ## Core Logic
+
+When _Astra_ starts, it goes through three main phases: initialization, device connection, and web interface.
+
+1. **Initialization**
+   - **Database**: Creates (if it doesn't exist) a local SQLite database to store polled device data and logs.
+   - **Configuration**: Loads both observatory and FITS header configuration.
+   - **Queue**: Starts a shared queue for managing communication between device processes.
+   - **Flags**: Initializes status flags for running the watchdog, schedule, weather safety, and error-free state.
+   - **Schedule**: Checks for and loads an observation schedule, if available.
+   - **Devices**: Creates independent processes for each configured device.
+2. **Device Connection**
+   - **Connect Devices**: Each device process attempts to connect to its hardware.
+   - **Polling**: Starts automatic polling of device properties (as dictated by the FITS header configuration).
+   - **Safety System**: Watchdog starts monitoring weather, device process health, and system status.
+3. **Web Interface**
+   - **FastAPI**: jinja2 delivered user interface and API are initialized.
 
 _Astra_ is built around a multi-process architecture, where each device runs in its own process. This design ensures that issues with one device do not affect the overall system's stability. Communication between the main process and device processes is managed through a shared queue.
 

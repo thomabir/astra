@@ -188,7 +188,7 @@ class ConsoleStreamHandler(logging.StreamHandler):
                 before adding the console handler.
 
         Note:
-        - This method intentionally does not attach handlers to the root
+            This method intentionally does not attach handlers to the root
             logger to avoid interfering with other frameworks (for example,
             Uvicorn's logging configuration).
         """
