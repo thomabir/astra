@@ -13,7 +13,7 @@ astronomical observatories.
 _Astra_ controls observatory devices via the **ASCOM Alpaca protocol**. It can execute prescheduled observatory actions under continuous weather safety supervision,
 such as object observations with plate-solve-based pointing correction using an offline Gaia–2MASS catalogue, PID-controlled autoguiding, sky-flats, and autofocusing.
 
-A FastAPI web interface provides a browser UI, REST and WebSocket APIs for real-time status, image previews, SQLite-backed database.
+A FastAPI web interface provides a browser UI, alongside REST and WebSocket APIs for real-time status monitoring, image previews, and interaction with the SQLite-backed database.
 
 ## Used By
 
