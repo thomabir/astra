@@ -6,42 +6,28 @@
 :alt: banner
 ```
 
-There are many reasons why you might consider creating a custom `Observatory` subclass
-to adapt to site-specific behaviour without changing the source code, such as
+You can create custom `Observatory` subclasses to adapt _Astra_ to site-specific requirements without modifying the source code:
 
-- Add observatory-specific shutdown/opening sequences.
-- Override polling or error-acknowledgement for non-standard devices.
-- Encapsulate organisation-specific safeguards and logging.
+- Add observatory-specific shutdown/opening sequences
+- Override polling or error-acknowledgement for non-standard devices
+- Encapsulate organization-specific safeguards and logging
 
-`astra` / `main.py` uses an `ObservatoryLoader` to discover and load custom
-observatory subclasses at runtime. The loader searches the directory configured
-by `Config().paths.custom_observatories` for `*.py` files, imports them using
-`importlib.util.spec_from_file_location`, and inspects each module for classes
-that are subclasses of `Observatory` (excluding `Observatory` itself).
+## How It Works
 
-Matching is case-insensitive: the loader compares the requested observatory
-name (lowercased) against the lowercased class name and any names listed in
-the class attribute `OBSERVATORY_ALIASES`. When a match is found the loader
-returns that subclass; if no match is found it returns the base
-`Observatory` class.
+_Astra_ uses an `ObservatoryLoader` that searches your `custom_observatories` directory for Python files containing `Observatory` subclasses. When you use the `--observatory` flag, the loader searches for a matching subclass (case-insensitive, including `OBSERVATORY_ALIASES` class attribute). If no match is found, the default `Observatory` class is used.
 
-Because of this fallback behaviour, `main.py` and the default runtime continue
-to work unchanged if no custom subclass is present or matched.
+```bash
+# Load SPECULOOS custom subclass (if it exists)
+astra --observatory SPECULOOS
+```
+
+```{note}
+The `--observatory` flag is optional and only needed if you've created custom subclasses. It selects which Python subclass to use. Not to be mistaken with which observatory configuration to run -- that's determined by `observatory_name` in your base configuration file (`~/.astra/astra_config.yml`).
+```
 
 For background on subclassing and inheritance in Python, see e.g.
 [Python inheritance tutorial](https://docs.python.org/3/tutorial/classes.html#inheritance)
 in the official documentation.
-
-````{admonition} Astra CLI Observatory Selection
-When running `astra` from the command line, you can specify the observatory name using the `--observatory` flag, e.g.:
-
-```bash
-astra --observatory SPECULOOS
-```
-
-This will trigger the `ObservatoryLoader` to search for a subclass matching "SPECULOOS" (case-insensitive) and load it if found. If no match is found, the default `Observatory` class will be used.
-
-````
 
 ## Example SPECULOOS
 

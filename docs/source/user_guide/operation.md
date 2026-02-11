@@ -144,6 +144,15 @@ Following [Quickstart](../quickstart), `astra` has a few optional startup option
    :nodescription: true
 ```
 
+```{important}
+Each _Astra_ instance runs exactly one observatory at a time, determined by the `observatory_name` field in your base configuration file (`~/.astra/astra_config.yml`).
+```
+
+**Key Options:**
+
+- **`--config`**: Specify a different base configuration file. Useful for running multiple observatories (each needs different `--config` and `--port`).
+- **`--observatory`**: Select a custom Python subclass for site-specific behavior (see [Custom Observatories](custom_observatories)). Optional - only needed if you've created custom subclasses.
+
 In most cases you will run `astra` without any additional options.
 
 ## Troubleshooting

@@ -6,14 +6,18 @@
 :alt: banner
 ```
 
-_Astra_ requires an observatory configuration file in YAML format. This file defines all devices, their settings, safety limits, and how they interact with each other.
+_Astra_ requires an observatory configuration file in YAML format that defines all devices, their settings, safety limits, and how they interact with each other.
 
-Before setting up your observatory, you'll need to configure two main components:
+```{important}
+Each _Astra_ instance runs exactly one observatory at a time, specified by the `observatory_name` field in your base configuration file (`~/.astra/astra_config.yml`).
 
-1. **Observatory Configuration** - Defines your hardware devices and their settings
-2. **FITS Header Configuration** - Maps device properties to FITS header keywords
+This name determines which configuration files are loaded: `{observatory_name}_config.yml` and `{observatory_name}_fits_header_config.csv`.
+```
 
-Let's start with the observatory configuration.
+You'll need to configure two files for your observatory:
+
+- **`{observatory_name}_config.yml`** (this page) - Device definitions, safety limits, and settings
+- **`{observatory_name}_fits_header_config.csv`** ([FITS Header Configuration](fits_header_configuration)) - FITS header keyword mappings
 
 ```{literalinclude} ../../../src/astra/config/templates/observatory_config.yml
 :language: yaml

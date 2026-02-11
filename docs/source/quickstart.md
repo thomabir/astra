@@ -108,6 +108,8 @@ Exiting until observatory configuration is updated.
 ```
 
 ```{important}
+Each _Astra_ instance runs exactly one observatory at a time, determined by the `observatory_name` field in your base configuration file (`~/.astra/astra_config.yml`).
+
 The configuration files will be created in the `observatory_config` directory.
 You must edit them with your observatory's information before using _Astra_ in normal
 operation.
