@@ -85,9 +85,6 @@ ObservingConditions:
       SkyTemperature:
         - upper: -30
           max_safe_duration: 30
-      SkyBrightness:
-        - upper: 1000
-          max_safe_duration: 30
       RelativeSkyTemp:
         - upper: -40
           max_safe_duration: 30
