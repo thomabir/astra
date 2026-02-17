@@ -44,7 +44,6 @@ import astropy.units as u
 import numpy as np
 import pandas as pd
 import psutil
-from alpaca.telescope import PierSide
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body
 from astropy.io import fits
 from astropy.time import Time
@@ -2100,62 +2099,82 @@ class Observatory:
         return exposure_successful, filepath
 
     def _check_and_perform_meridian_flip(
-        self, action: Action, paired_devices: PairedDevices, guiding: bool
+        self,
+        action: Action,
+        paired_devices: PairedDevices,
+        guiding: bool,
+        exposure_time_sec: float = 0.0,
     ) -> bool:
         """
-        Check if meridian flip is required and perform it.
+        Predictive meridian flip check.
+        Ensures the mount doesn't cross into an unsafe pointing state mid-exposure.
 
-        Returns:
-            bool: True if flip was performed, False otherwise.
+        Parameters:
+            action: The current Action being executed, used for condition checks.
+            paired_devices: The devices involved in the current sequence, used to access telescope properties.
+            guiding: Whether guiding is currently active, used to determine if guiding needs to be stopped for the flip.
+            exposure_time_sec: The duration of the upcoming exposure in seconds, used to predict if a flip will be needed before the exposure ends.
         """
         try:
             telescope = paired_devices.telescope
-
-            # Calculate HA first to optimize device calls
-            # Use telescope coordinates to handle all input types (RA/DEC, Alt/Az, Object Name)
             lst = telescope.get("SiderealTime")
-            ra = telescope.get("RightAscension")  # RA in hours
+            ra = telescope.get("RightAscension")
+            dec = telescope.get("Declination")
 
-            ha = lst - ra
-            # Normalize to -12 to +12
-            if ha > 12:
-                ha -= 24
-            if ha < -12:
-                ha += 24
+            # 1. Calculate Current Hour Angle
+            ha_now = lst - ra
+            if ha_now > 12:
+                ha_now -= 24
+            if ha_now < -12:
+                ha_now += 24
+
+            # 2. Calculate Predicted Hour Angle at the end of the exposure
+            # (exposure_time_sec / 3600.0) converts seconds to decimal hours
+            ha_at_end = ha_now + (exposure_time_sec / 3600.0)
 
             telescope_config = paired_devices.get_device_config("Telescope")
             flip_min = telescope_config.get("meridian_flip_min", 5)
+            limit_hours = flip_min / 60.0
 
-            # Optimization: If we are not past the meridian buffer yet, we can't flip.
-            # This avoids the SideOfPier call for all images on the East side (HA < 0).
-            if ha <= (flip_min / 60.0):
+            # 3. Check if we are (or will be) past the flip margin
+            if ha_at_end <= limit_hours:
                 return False
 
-            # Only check SideOfPier if necessary (HA > buffer)
+            # 4. Determine if the pointing state needs to change
             side_of_pier = telescope.get("SideOfPier")
 
-            # If passed meridian (HA > buffer) AND SideOfPier is East (pointing West)
-            # flip_min is in minutes
-            if side_of_pier == PierSide.pierEast:
+            try:
+                dest_side = telescope.get(
+                    "DestinationSideOfPier",
+                    RightAscension=ra,
+                    Declination=dec,
+                )
+            except Exception:
+                # Fallback: In ASCOM GEM convention, West (HA > 0) normal state is pierEast (0)
+                dest_side = 0
+
+            # 5. Flip if current pointing state is NOT the 'Normal' state for the target
+            if side_of_pier != dest_side:
                 self.logger.info(
-                    f"Meridian flip required (HA={ha:.2f}h, SideOfPier={side_of_pier})"
+                    f"Predictive flip: Exposure would end at HA={ha_at_end:.2f}h. "
+                    f"Current SideOfPier ({side_of_pier}) is 'Through the Pole'. "
+                    f"Flipping to {dest_side}..."
                 )
 
-                # Stop Guiding
                 if guiding:
                     self.guider_manager.stop_guider(
                         paired_devices["Telescope"],
                         thread_manager=self.thread_manager,
                     )
 
-                # Perform Flip (Slew)
+                # Slew to trigger the flip
                 self.setup_observatory(paired_devices, action.action_value)
 
                 self.logger.info("Meridian flip completed")
                 return True
 
         except Exception as e:
-            self.logger.error(f"Error checking/performing meridian flip: {e}")
+            self.logger.error(f"Error during predictive meridian flip check: {e}")
 
         return False
 
@@ -2229,7 +2248,11 @@ class Observatory:
 
         # Check if automated meridian flip is enabled in config
         meridian_flip_enabled = False
-        if "Telescope" in paired_devices:
+        if (
+            "Telescope" in paired_devices
+            and action_value.get("disable_telescope_movement", False) is False
+            and action.action_type != "calibration"
+        ):
             try:
                 telescope_config = paired_devices.get_device_config("Telescope")
                 meridian_flip_enabled = telescope_config.get("meridian_flip", False)
@@ -2253,7 +2276,7 @@ class Observatory:
                     ) and self.check_conditions(action):
                         last_flip_check_time = current_time
                         if self._check_and_perform_meridian_flip(
-                            action, paired_devices, guiding
+                            action, paired_devices, guiding, exptime
                         ):
                             guiding = False
                             pointing_complete = False
