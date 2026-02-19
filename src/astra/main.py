@@ -1296,8 +1296,8 @@ async def websocket_endpoint(websocket: WebSocket):
             {"item": "time to safe", "value": f"{obs.time_to_safe:.2f} mins"},
         ]
 
-        try:
-            if "Telescope" in obs.devices:
+        if "Telescope" in obs.devices:
+            try:
                 # we want to know if slewing or tracking
                 device_type = "Telescope"
                 for device_name in polled_list[device_type].keys():
@@ -1360,8 +1360,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             "last_update": "0 s ago",
                         }
                     )
+            except Exception as e:
+                logger.error(f"Error processing Telescope devices: {e}", exc_info=True)
 
-            if "Dome" in obs.devices:
+        if "Dome" in obs.devices:
+            try:
                 # we want to know if dome open or closed
                 device_type = "Dome"
                 for device_name in polled_list[device_type].keys():
@@ -1408,8 +1411,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             "polled": polled,
                         }
                     )
+            except Exception as e:
+                logger.error(f"Error processing Dome devices: {e}", exc_info=True)
 
-            if "FilterWheel" in obs.devices:
+        if "FilterWheel" in obs.devices:
+            try:
                 # we want to know name of filter
                 device_type = "FilterWheel"
                 for device_name in polled_list[device_type].keys():
@@ -1456,8 +1462,13 @@ async def websocket_endpoint(websocket: WebSocket):
                             "filter_names": FWS[device_name],
                         }
                     )
+            except Exception as e:
+                logger.error(
+                    f"Error processing FilterWheel devices: {e}", exc_info=True
+                )
 
-            if "Camera" in obs.devices:
+        if "Camera" in obs.devices:
+            try:
                 device_type = "Camera"
                 for device_name in polled_list[device_type].keys():
                     polled = polled_list[device_type][device_name]
@@ -1507,8 +1518,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             "polled": polled,
                         }
                     )
+            except Exception as e:
+                logger.error(f"Error processing Camera devices: {e}", exc_info=True)
 
-            if "Focuser" in obs.devices:
+        if "Focuser" in obs.devices:
+            try:
                 device_type = "Focuser"
                 for device_name in polled_list[device_type].keys():
                     polled = polled_list[device_type][device_name]
@@ -1541,8 +1555,11 @@ async def websocket_endpoint(websocket: WebSocket):
                             "polled": polled,
                         }
                     )
+            except Exception as e:
+                logger.error(f"Error processing Focuser devices: {e}", exc_info=True)
 
-            if "ObservingConditions" in obs.devices:
+        if "ObservingConditions" in obs.devices:
+            try:
                 device_type = "ObservingConditions"
                 for device_name in polled_list[device_type].keys():
                     polled = polled_list[device_type][device_name]
@@ -1576,8 +1593,14 @@ async def websocket_endpoint(websocket: WebSocket):
                             "polled": polled,
                         }
                     )
+            except Exception as e:
+                logger.error(
+                    f"Error processing ObservingConditions devices: {e}",
+                    exc_info=True,
+                )
 
-            if "SafetyMonitor" in obs.devices:
+        if "SafetyMonitor" in obs.devices:
+            try:
                 device_type = "SafetyMonitor"
                 for device_name in polled_list[device_type].keys():
                     polled = polled_list[device_type][device_name]
@@ -1617,9 +1640,10 @@ async def websocket_endpoint(websocket: WebSocket):
                             "polled": polled,
                         }
                     )
-
-        except Exception as e:
-            logger.error(f"Error in websocket_endpoint: {e}", exc_info=True)
+            except Exception as e:
+                logger.error(
+                    f"Error processing SafetyMonitor devices: {e}", exc_info=True
+                )
 
         # Check all image handlers for the most recent image
         image_info = None
