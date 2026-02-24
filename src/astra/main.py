@@ -1499,7 +1499,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
-                logger.error(f"Error processing Telescope devices: {e}", exc_info=True)
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
+                logger.error(
+                    f"Error processing {device_type} devices: {e}", exc_info=True
+                )
 
         if "Dome" in obs.devices:
             try:
@@ -1550,7 +1561,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
-                logger.error(f"Error processing Dome devices: {e}", exc_info=True)
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
+                logger.error(
+                    f"Error processing {device_type} devices: {e}", exc_info=True
+                )
 
         if "FilterWheel" in obs.devices:
             try:
@@ -1601,8 +1623,17 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
                 logger.error(
-                    f"Error processing FilterWheel devices: {e}", exc_info=True
+                    f"Error processing {device_type} devices: {e}", exc_info=True
                 )
 
         if "Camera" in obs.devices:
@@ -1657,7 +1688,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
-                logger.error(f"Error processing Camera devices: {e}", exc_info=True)
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
+                logger.error(
+                    f"Error processing {device_type} devices: {e}", exc_info=True
+                )
 
         if "Focuser" in obs.devices:
             try:
@@ -1694,7 +1736,18 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
-                logger.error(f"Error processing Focuser devices: {e}", exc_info=True)
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
+                logger.error(
+                    f"Error processing {device_type} devices: {e}", exc_info=True
+                )
 
         if "ObservingConditions" in obs.devices:
             try:
@@ -1732,8 +1785,17 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
                 logger.error(
-                    f"Error processing ObservingConditions devices: {e}",
+                    f"Error processing {device_type} devices: {e}",
                     exc_info=True,
                 )
 
@@ -1779,8 +1841,17 @@ async def websocket_endpoint(websocket: WebSocket):
                         }
                     )
             except Exception as e:
+                table0.append(
+                    {
+                        "item": device_type,
+                        "name": None,
+                        "status": "error",
+                        "valid": False,
+                        "last_update": "0 s ago",
+                    }
+                )
                 logger.error(
-                    f"Error processing SafetyMonitor devices: {e}", exc_info=True
+                    f"Error processing {device_type} devices: {e}", exc_info=True
                 )
 
         # Check all image handlers for the most recent image
