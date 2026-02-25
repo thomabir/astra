@@ -74,6 +74,7 @@ class GuidingCalibrator:
         self.number_of_cycles = action.action_value.get(
             "number_of_cycles", number_of_cycles
         )
+        self.binning = action.action_value.get("bin", 1)
         self._directions = defaultdict(list)
         self._scales = defaultdict(list)
         self._calibration_config = {}
@@ -228,7 +229,8 @@ class GuidingCalibrator:
                 calibration_config["RA_AXIS"] = "x" if "x" in direction_literal else "y"
 
             calibration_config["PIX2TIME"][direction_literal] = float(
-                self.pulse_time / np.average(self._scales[direction_name])
+                (self.pulse_time / np.average(self._scales[direction_name]))
+                / self.binning
             )
             calibration_config["DIRECTIONS"][direction_literal] = direction_name
 

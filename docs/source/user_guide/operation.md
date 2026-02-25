@@ -30,7 +30,7 @@ On first schedule run, you should autofocus and calibrate guiding to ensure opti
 Create a schedule file containing the following sequence (adjust times as needed) and then turn the robotic switch on (see [Web Interface](#web-interface) below):
 
 **1. Open**
-First, trigger the open action. This opens the observatory and automatically cools the camera to the temperature defined in your configuration.
+First, trigger the [open action](scheduling.md#open-action). This opens the observatory and automatically cools the camera to the temperature defined in your configuration.
 
 ```json
 // Open observatory and cool
@@ -44,7 +44,7 @@ First, trigger the open action. This opens the observatory and automatically coo
 ```
 
 **2. Autofocus**
-Run the autofocus routine. Ensure the `filter` matches one installed in your wheel.
+Run the [autofocus action](scheduling.md#autofocus-action). Ensure the `filter` matches one installed in your wheel.
 
 ```json
 // Autofocus
@@ -81,7 +81,7 @@ Once focused, build a pointing model. Each pointing is plate solved and sends Sy
 ``` -->
 
 **3. Calibrate guiding**
-Finally, calibrate the autoguider parameters. The schedule measures the response of the PulseGuide command and the orientation of the camera on the sky.
+Finally, [calibrate the autoguider parameters](scheduling.md#calibrate-guiding-action). The schedule measures the response of the PulseGuide command and the orientation of the camera on the sky.
 
 ```json
 // Calibrate Guiding
