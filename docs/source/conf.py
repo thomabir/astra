@@ -1,6 +1,7 @@
 import importlib.metadata
 import os
 import sys
+from datetime import datetime
 
 # Add the project source directory to the path so that autodoc can find the modules
 sys.path.insert(0, os.path.abspath("../../src"))
@@ -10,8 +11,8 @@ sys.path.insert(0, os.path.abspath("."))
 
 # Project information
 project = "Astra"
-copyright = "2026, Peter Pedersen"
-author = "Peter Pedersen"
+copyright = f"{datetime.now().year}, Peter P. Pedersen"
+author = "Peter P. Pedersen"
 
 # The full version, including alpha/beta/rc tags
 version = importlib.metadata.version("astra")

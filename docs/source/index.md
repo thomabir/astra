@@ -20,6 +20,7 @@ A [FastAPI](https://fastapi.tiangolo.com/) web interface provides a browser UI, 
   style="width:100%;aspect-ratio:16/9;border:0;"
   allow="fullscreen"
   loading="lazy"
+  frameborder="0"
   referrerpolicy="strict-origin-when-cross-origin">
 </iframe>
 
@@ -70,7 +71,7 @@ delivering reliable, unattended survey operations, including:
 
 ## Developed by
 
-_Astra_ is developed by a team of astronomers and software engineers at [Queloz Group, ETH Zürich, Switzerland](https://queloz-group.ethz.ch/), in collaboration with the [SPECULOOS consortia](https://www.speculoos.uliege.be/cms/c_4259452/en/speculoos).
+_Astra_ is developed by a team of astronomers and software engineers at [Queloz Group, ETH Zürich, Switzerland](https://queloz-group.ethz.ch/), in collaboration with the [SPECULOOS consortium](https://www.speculoos.uliege.be/cms/c_4259452/en/speculoos).
 
 ```{note}
 This documentation is a work in progress. We are continuously updating and improving it. If you have any questions or suggestions, please feel free to reach out to us via [GitHub Issues](https://github.com/ppp-one/astra/issues).
